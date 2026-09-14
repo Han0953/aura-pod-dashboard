@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/aura-pod-logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AURA Pod — Microalgae Photobioreactor IoT Dashboard</title>
+    <meta name="description" content="Real-time telemetry, IoT actuator control, and MRV bio-analytics for AURA Pod microalgae photobioreactors." />
+    
+    <!-- Inline Theme Bootstrapper to prevent any flash or sync delay -->
+    <script>
+      (function() {
+        try {
+          const savedTheme = localStorage.getItem('aura-pod-theme');
+          const theme = savedTheme === 'light' ? 'light' : 'dark';
+          const root = document.documentElement;
+          if (theme === 'dark') {
+            root.classList.add('dark');
+            root.classList.remove('light');
+            root.setAttribute('data-theme', 'dark');
+            root.style.colorScheme = 'dark';
+          } else {
+            root.classList.remove('dark');
+            root.classList.add('light');
+            root.setAttribute('data-theme', 'light');
+            root.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <!-- Google Fonts: Plus Jakarta Sans, Inter, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-aura-bg text-aura-text-primary antialiased selection:bg-aura-primary/20 selection:text-aura-primary">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

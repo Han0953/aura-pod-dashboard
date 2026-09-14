@@ -1,0 +1,43 @@
+/**
+ * Sensor Types matching agent.md/documentation/DATA_MODEL.md
+ */
+
+export interface SensorData {
+  temperature: number;
+  ph: number | null;
+  gasIndex: number | null;
+  timestamp: string;
+}
+
+export interface SensorPoint {
+  timestamp: string;
+  value: number;
+}
+
+export interface MultiSeriesSensorPoint {
+  timestamp: string;
+  timeLabel: string;
+  temperature: number;
+  ph: number | null;
+  gasIndex: number | null;
+}
+
+export interface SensorThresholds {
+  min: number;
+  max: number;
+  unit: string;
+  warningThreshold?: number;
+  criticalThreshold?: number;
+}
+
+export type SensorStatusLevel = "normal" | "warning" | "error" | "unavailable";
+
+export interface SensorMetadata {
+  id: "temperature" | "ph" | "gasIndex";
+  label: string;
+  hardwareSensor: string;
+  unit: string;
+  targetRange: string;
+  description: string;
+  status: SensorStatusLevel;
+}

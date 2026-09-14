@@ -1,0 +1,326 @@
+import React from "react";
+import {
+  Thermometer,
+  TestTube,
+  Wind,
+  Download,
+  TrendingUp,
+  Table as TableIcon,
+} from "lucide-react";
+import { SensorChart } from "@/components/sensors/SensorChart";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { DashboardContextType } from "@/services/dashboardService";
+import { SENSOR_THRESHOLDS } from "@/lib/constants";
+
+interface MonitoringViewProps {
+  dashboard: DashboardContextType;
+}
+
+export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => {
+  const {
+    sensorData,
+    deviceStatus,
+    telemetryHistory,
+    timeRange,
+    setTimeRange,
+  } = dashboard;
+
+  const isOffline = !deviceStatus.online;
+
+  return (
+    <div className="space-y-6 pb-12">
+      {/* Section 1: Comparative Detailed Sensor Clusters (3 Cards) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Cluster 1: DS18B20 Temperature */}
+        <div className="rounded-2xl bg-aura-surface border border-aura-border hover:border-aura-border-hover p-6 flex flex-col justify-between shadow-sm transition-all">
+          <div>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-aura-surface-active border border-aura-primary/30 flex items-center justify-center text-aura-primary shadow-glow">
+                  <Thermometer className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-heading text-sm font-bold text-aura-text-primary">
+                    Culture Temperature
+                  </h3>
+                  <span className="text-[10px] text-aura-text-secondary font-mono uppercase tracking-wider">
+                    DS18B20 1-Wire
+                  </span>
+                </div>
+              </div>
+              <StatusBadge
+                variant={isOffline ? "offline" : "normal"}
+                label={isOffline ? "Offline" : "Optimal"}
+              />
+            </div>
+
+            <div className="flex items-baseline justify-between pt-4">
+              <div className="flex items-baseline gap-2">
+                <span className="font-heading text-3xl font-bold text-aura-text-primary tabular-nums">
+                  {isOffline ? "--" : sensorData.temperature}
+                </span>
+                <span className="text-sm font-medium text-aura-text-secondary">
+                  °C
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-aura-primary font-mono">
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>+0.1°C / hr</span>
+              </div>
+            </div>
+
+            {/* Target corridor indicator */}
+            <div className="mt-3 p-2.5 rounded-xl bg-aura-surface-subtle border border-aura-border flex items-center justify-between text-xs">
+              <span className="text-aura-text-secondary">Bio Corridor:</span>
+              <span className="font-mono text-aura-primary font-medium">
+                {SENSOR_THRESHOLDS.temperature.toleranceStr}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-aura-border text-xs">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-mono text-aura-text-secondary">
+                Min / Max (Today)
+              </span>
+              <span className="font-mono font-bold text-aura-text-primary mt-0.5">
+                23.8° / 25.1°
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-mono text-aura-text-secondary">
+                Std. Dev
+              </span>
+              <span className="font-mono font-bold text-aura-primary mt-0.5">
+                ±0.24 °C
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Cluster 2: PH-4502C Acidity */}
+        <div className="rounded-2xl bg-aura-surface border border-aura-border hover:border-aura-border-hover p-6 flex flex-col justify-between shadow-sm transition-all">
+          <div>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-aura-cyan/10 border border-aura-cyan/30 flex items-center justify-center text-aura-cyan shadow-[0_0_12px_rgba(56,189,248,0.2)]">
+                  <TestTube className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-heading text-sm font-bold text-aura-text-primary">
+                    Culture Acidity (pH)
+                  </h3>
+                  <span className="text-[10px] text-aura-text-secondary font-mono uppercase tracking-wider">
+                    PH-4502C Interface
+                  </span>
+                </div>
+              </div>
+              <StatusBadge
+                variant={
+                  isOffline
+                    ? "offline"
+                    : sensorData.ph === null
+                    ? "unavailable"
+                    : "normal"
+                }
+                label={
+                  isOffline
+                    ? "Offline"
+                    : sensorData.ph === null
+                    ? "Probe Disconnected"
+                    : "Buffered"
+                }
+              />
+            </div>
+
+            <div className="flex items-baseline justify-between pt-4">
+              <div className="flex items-baseline gap-2">
+                <span className="font-heading text-3xl font-bold text-aura-text-primary tabular-nums">
+                  {isOffline || sensorData.ph === null ? "--" : sensorData.ph}
+                </span>
+                <span className="text-sm font-medium text-aura-cyan">pH</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-aura-cyan font-mono">
+                <span>Neutral Buffer</span>
+              </div>
+            </div>
+
+            {/* Target corridor indicator */}
+            <div className="mt-3 p-2.5 rounded-xl bg-aura-surface-subtle border border-aura-border flex items-center justify-between text-xs">
+              <span className="text-aura-text-secondary">Bio Corridor:</span>
+              <span className="font-mono text-aura-cyan font-medium">
+                {SENSOR_THRESHOLDS.ph.toleranceStr}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-aura-border text-xs">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-mono text-aura-text-secondary">
+                Optimal Drift
+              </span>
+              <span className="font-mono font-bold text-aura-text-primary mt-0.5">
+                ±0.04 pH / hr
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-mono text-aura-text-secondary">
+                Alkaline Reserve
+              </span>
+              <span className="font-mono font-bold text-aura-cyan mt-0.5">
+                Balanced
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Cluster 3: MQ-135 Gas Index */}
+        <div className="rounded-2xl bg-aura-surface border border-aura-border hover:border-aura-border-hover p-6 flex flex-col justify-between shadow-sm transition-all">
+          <div>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-aura-amber/10 border border-aura-amber/30 flex items-center justify-center text-aura-amber shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                  <Wind className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-heading text-sm font-bold text-aura-text-primary">
+                    Gas Quality Index
+                  </h3>
+                  <span className="text-[10px] text-aura-text-secondary font-mono uppercase tracking-wider">
+                    MQ-135 Indicator
+                  </span>
+                </div>
+              </div>
+              <StatusBadge
+                variant={isOffline ? "offline" : "normal"}
+                label={isOffline ? "Offline" : "Nominal"}
+              />
+            </div>
+
+            <div className="flex items-baseline justify-between pt-4">
+              <div className="flex items-baseline gap-2">
+                <span className="font-heading text-3xl font-bold text-aura-text-primary tabular-nums">
+                  {isOffline || sensorData.gasIndex === null
+                    ? "--"
+                    : sensorData.gasIndex}
+                </span>
+                <span className="text-sm font-medium text-aura-amber">AQI Idx</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-aura-amber font-mono">
+                <span>Rel. Diffusion</span>
+              </div>
+            </div>
+
+            {/* Target corridor indicator */}
+            <div className="mt-3 p-2.5 rounded-xl bg-aura-surface-subtle border border-aura-border flex items-center justify-between text-xs">
+              <span className="text-aura-text-secondary">Normal Baseline:</span>
+              <span className="font-mono text-aura-amber font-medium">
+                {SENSOR_THRESHOLDS.gasIndex.toleranceStr}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-aura-border text-xs">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-mono text-aura-text-secondary">
+                Pre-heat Calibration
+              </span>
+              <span className="font-mono font-bold text-aura-text-primary mt-0.5">
+                Ready (100%)
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-mono text-aura-text-secondary">
+                Relative Baseline
+              </span>
+              <span className="font-mono font-bold text-aura-amber mt-0.5">
+                138 AQI
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 2: Main Telemetry Recharts Graph */}
+      <SensorChart
+        data={telemetryHistory}
+        timeRange={timeRange}
+        onTimeRangeChange={setTimeRange}
+        currentTemp={sensorData.temperature}
+        currentPh={sensorData.ph}
+        currentGas={sensorData.gasIndex}
+        title="Multi-Parameter Telemetry Stream & Convergence"
+      />
+
+      {/* Section 3: Telemetry Stream Log Table */}
+      <div className="rounded-2xl bg-aura-surface border border-aura-border p-6 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-aura-surface-active border border-aura-primary/30 flex items-center justify-center text-aura-primary">
+              <TableIcon className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-heading text-base font-bold text-aura-text-primary tracking-tight">
+                Recent Telemetry Sampling Log
+              </h3>
+              <p className="text-xs text-aura-text-secondary">
+                Recorded data points synchronized from ESP32 telemetry bus
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => alert("Data log exported as CSV for MRV record")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-aura-surface-subtle hover:bg-aura-border/40 text-xs font-medium text-aura-text-primary border border-aura-border transition-colors"
+            >
+              <Download className="w-3.5 h-3.5 text-aura-primary" />
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-aura-border text-aura-text-secondary uppercase tracking-wider font-mono text-[11px]">
+                <th className="pb-3 font-semibold">Timestamp</th>
+                <th className="pb-3 font-semibold">Culture Temp (°C)</th>
+                <th className="pb-3 font-semibold">pH Acidity</th>
+                <th className="pb-3 font-semibold">Gas Index (AQI)</th>
+                <th className="pb-3 font-semibold">Status Verification</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-aura-border/60 font-mono">
+              {telemetryHistory.slice(-8).reverse().map((point, index) => (
+                <tr
+                  key={point.timestamp}
+                  className="hover:bg-aura-surface-subtle transition-colors"
+                >
+                  <td className="py-3 text-aura-text-secondary">
+                    {point.timeLabel} {index === 0 && <span className="text-aura-primary font-bold">(Latest)</span>}
+                  </td>
+                  <td className="py-3 text-aura-text-primary font-bold tabular-nums">
+                    {point.temperature} °C
+                  </td>
+                  <td className="py-3 text-aura-cyan font-bold tabular-nums">
+                    {point.ph !== null ? `${point.ph} pH` : "Null (Disconnected)"}
+                  </td>
+                  <td className="py-3 text-aura-amber font-bold tabular-nums">
+                    {point.gasIndex} AQI
+                  </td>
+                  <td className="py-3">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-aura-surface-active text-aura-primary text-[10px] border border-aura-primary/30">
+                      <span className="w-1.5 h-1.5 rounded-full bg-aura-primary" />
+                      Nominal
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
