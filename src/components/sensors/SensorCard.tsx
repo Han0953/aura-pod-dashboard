@@ -9,7 +9,6 @@ interface SensorCardProps {
   unit?: string;
   status: StatusVariant;
   icon: React.ReactNode;
-  targetRange?: string;
   colorTheme?: "mint" | "cyan" | "amber" | "emerald";
   sparkline?: "temp" | "ph" | "gas" | "none";
   offline?: boolean;
@@ -22,7 +21,6 @@ export const SensorCard: React.FC<SensorCardProps> = ({
   unit = "",
   status,
   icon,
-  targetRange,
   colorTheme = "mint",
   sparkline = "none",
   offline = false,
@@ -177,17 +175,13 @@ export const SensorCard: React.FC<SensorCardProps> = ({
         )}
       </div>
 
-      {/* Target Range & Metadata Footer */}
+      {/* Telemetry Status & Metadata Footer */}
       <div className="flex items-center justify-between pt-2 border-t border-aura-border/60 text-xs text-aura-text-secondary">
-        {targetRange ? (
-          <span>
-            Target: <span className="text-aura-text-primary font-mono font-medium">{targetRange}</span>
-          </span>
-        ) : (
-          <span>Status Operational</span>
-        )}
+        <span className="text-[11px] text-aura-text-secondary">
+          {offline ? "ESP32 Disconnected" : "Telemetry Active"}
+        </span>
         <span className="text-[10px] text-aura-text-secondary font-mono">
-          {offline ? "ESP32 Standby" : "10s Polling"}
+          {offline ? "Standby" : "10s Polling"}
         </span>
       </div>
     </div>

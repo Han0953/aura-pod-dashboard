@@ -76,7 +76,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           unit="°C"
           status={getTempStatus()}
           icon={<Thermometer className="w-5 h-5 text-aura-primary" />}
-          targetRange={SENSOR_THRESHOLDS.temperature.toleranceStr}
           colorTheme="mint"
           sparkline="temp"
           offline={isOffline}
@@ -90,7 +89,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           unit="pH"
           status={getPhStatus()}
           icon={<TestTube className="w-5 h-5 text-aura-cyan" />}
-          targetRange={SENSOR_THRESHOLDS.ph.toleranceStr}
           colorTheme="cyan"
           sparkline="ph"
           offline={isOffline}
@@ -104,7 +102,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           unit="AQI"
           status={getGasStatus()}
           icon={<Wind className="w-5 h-5 text-aura-amber" />}
-          targetRange={SENSOR_THRESHOLDS.gasIndex.toleranceStr}
           colorTheme="amber"
           sparkline="gas"
           offline={isOffline}
@@ -118,7 +115,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           unit={deviceStatus.led ? "180 µmol" : ""}
           status={deviceStatus.led ? "active" : "inactive"}
           icon={<Sun className="w-5 h-5 text-aura-primary" />}
-          targetRange="16h / 8h Photoperiod"
           colorTheme="mint"
           sparkline="none"
           offline={isOffline}

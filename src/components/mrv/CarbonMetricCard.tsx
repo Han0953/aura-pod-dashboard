@@ -57,7 +57,7 @@ export const CarbonMetricCard: React.FC<CarbonMetricCardProps> = ({
               />
             </div>
             <div className="flex justify-between text-[11px] font-mono text-aura-text-secondary mt-1.5">
-              <span>Weekly Target: 2.70 kg</span>
+              <span>Weekly Projection: 2.70 kg</span>
               <span className="text-aura-primary font-semibold">68% Achieved</span>
             </div>
           </div>

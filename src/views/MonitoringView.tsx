@@ -10,7 +10,6 @@ import {
 import { SensorChart } from "@/components/sensors/SensorChart";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { DashboardContextType } from "@/services/dashboardService";
-import { SENSOR_THRESHOLDS } from "@/lib/constants";
 
 interface MonitoringViewProps {
   dashboard: DashboardContextType;
@@ -69,13 +68,6 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
               </div>
             </div>
 
-            {/* Target corridor indicator */}
-            <div className="mt-3 p-2.5 rounded-xl bg-aura-surface-subtle border border-aura-border flex items-center justify-between text-xs">
-              <span className="text-aura-text-secondary">Bio Corridor:</span>
-              <span className="font-mono text-aura-primary font-medium">
-                {SENSOR_THRESHOLDS.temperature.toleranceStr}
-              </span>
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-aura-border text-xs">
@@ -145,13 +137,6 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
               </div>
             </div>
 
-            {/* Target corridor indicator */}
-            <div className="mt-3 p-2.5 rounded-xl bg-aura-surface-subtle border border-aura-border flex items-center justify-between text-xs">
-              <span className="text-aura-text-secondary">Bio Corridor:</span>
-              <span className="font-mono text-aura-cyan font-medium">
-                {SENSOR_THRESHOLDS.ph.toleranceStr}
-              </span>
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-aura-border text-xs">
@@ -211,13 +196,6 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
               </div>
             </div>
 
-            {/* Target corridor indicator */}
-            <div className="mt-3 p-2.5 rounded-xl bg-aura-surface-subtle border border-aura-border flex items-center justify-between text-xs">
-              <span className="text-aura-text-secondary">Normal Baseline:</span>
-              <span className="font-mono text-aura-amber font-medium">
-                {SENSOR_THRESHOLDS.gasIndex.toleranceStr}
-              </span>
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-aura-border text-xs">
