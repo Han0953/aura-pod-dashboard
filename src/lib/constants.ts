@@ -19,14 +19,6 @@ export const SENSOR_THRESHOLDS = {
     unit: "°C",
     toleranceStr: "22.0 – 26.0 °C",
   },
-  ph: {
-    min: 6.0,
-    max: 9.0,
-    optimalMin: 7.2,
-    optimalMax: 8.2,
-    unit: "pH",
-    toleranceStr: "7.2 – 8.2 pH",
-  },
   gasIndex: {
     min: 50,
     max: 350,
@@ -50,13 +42,6 @@ export const INITIAL_PIN_MAPPINGS: PinMapping[] = [
     virtualPin: "V0 (TBD)",
     hardwarePin: "GPIO 4",
     sensorOrActuator: "DS18B20 Temp Sensor",
-    direction: "Device → Dashboard",
-    status: "Active",
-  },
-  {
-    virtualPin: "V1 (TBD)",
-    hardwarePin: "GPIO 34 (ADC1)",
-    sensorOrActuator: "PH-4502C Sensor",
     direction: "Device → Dashboard",
     status: "Active",
   },

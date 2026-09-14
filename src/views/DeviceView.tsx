@@ -16,7 +16,6 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
   const {
     deviceStatus,
     diagnostics,
-    sensorData,
     toggleLed,
     toggleAerator,
     refreshData,
@@ -73,7 +72,6 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
         <div className="lg:col-span-6">
           <DeviceStatusCard
             deviceStatus={deviceStatus}
-            isPhNull={sensorData.ph === null}
           />
         </div>
       </div>

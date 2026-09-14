@@ -4,7 +4,6 @@
 
 export interface SensorData {
   temperature: number;
-  ph: number | null;
   gasIndex: number | null;
   timestamp: string;
 }
@@ -18,7 +17,6 @@ export interface MultiSeriesSensorPoint {
   timestamp: string;
   timeLabel: string;
   temperature: number;
-  ph: number | null;
   gasIndex: number | null;
 }
 
@@ -33,7 +31,7 @@ export interface SensorThresholds {
 export type SensorStatusLevel = "normal" | "warning" | "error" | "unavailable";
 
 export interface SensorMetadata {
-  id: "temperature" | "ph" | "gasIndex";
+  id: "temperature" | "gasIndex";
   label: string;
   hardwareSensor: string;
   unit: string;

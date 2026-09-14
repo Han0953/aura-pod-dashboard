@@ -17,7 +17,6 @@ interface SensorChartProps {
   timeRange: "1H" | "6H" | "24H" | "7D";
   onTimeRangeChange: (range: "1H" | "6H" | "24H" | "7D") => void;
   currentTemp?: number;
-  currentPh?: number | null;
   currentGas?: number | null;
   title?: string;
 }
@@ -61,9 +60,6 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, i
           if (entry.name === "temperature") {
             labelText = "Temperature (DS18B20)";
             unit = "°C";
-          } else if (entry.name === "ph") {
-            labelText = "pH Level (PH-4502C)";
-            unit = "pH";
           } else if (entry.name === "gasIndex") {
             labelText = "Gas Index (MQ-135)";
             unit = "AQI";
@@ -96,7 +92,6 @@ export const SensorChart: React.FC<SensorChartProps> = ({
   timeRange,
   onTimeRangeChange,
   currentTemp = 24.3,
-  currentPh = 7.8,
   currentGas = 142,
   title = "Sensor Trends & Telemetry",
 }) => {
@@ -106,7 +101,6 @@ export const SensorChart: React.FC<SensorChartProps> = ({
 
   // Precise chart colors depending on theme per DESIGN.md
   const tempColor = isDark ? "#00E599" : "#059669";
-  const phColor = isDark ? "#38BDF8" : "#0284C7";
   const gasColor = isDark ? "#F59E0B" : "#D97706";
   const gridColor = isDark ? "#16332B" : "#E2E8F0";
   const axisTextColor = isDark ? "#7D9B91" : "#64748B";
@@ -162,10 +156,6 @@ export const SensorChart: React.FC<SensorChartProps> = ({
                 <stop offset="5%" stopColor={tempColor} stopOpacity={0.25} />
                 <stop offset="95%" stopColor={tempColor} stopOpacity={0.0} />
               </linearGradient>
-              <linearGradient id="colorPh" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={phColor} stopOpacity={0.15} />
-                <stop offset="95%" stopColor={phColor} stopOpacity={0.0} />
-              </linearGradient>
             </defs>
             <CartesianGrid
               stroke={gridColor}
@@ -197,16 +187,6 @@ export const SensorChart: React.FC<SensorChartProps> = ({
               fillOpacity={1}
               fill="url(#colorTemp)"
             />
-
-            {/* pH Level Line */}
-            <Area
-              type="monotone"
-              dataKey="ph"
-              stroke={phColor}
-              strokeWidth={2}
-              fillOpacity={1}
-              fill="url(#colorPh)"
-            />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -226,18 +206,7 @@ export const SensorChart: React.FC<SensorChartProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
-          <span
-            className="w-2.5 h-2.5 rounded-full"
-            style={{ backgroundColor: phColor }}
-          />
-          <span className="text-aura-text-secondary">
-            Acidity pH (PH-4502C):{" "}
-            <span className="text-aura-text-primary font-mono font-bold tabular-nums">
-              {currentPh !== null ? `${currentPh} pH` : "Unavailable"}
-            </span>
-          </span>
-        </div>
+
 
         <div className="flex items-center gap-2 text-xs">
           <span

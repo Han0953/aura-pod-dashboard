@@ -43,8 +43,6 @@ function DashboardContent() {
           lastUpdatedText={dashboard.lastUpdatedText}
           isRefreshing={dashboard.isRefreshing}
           onRefresh={dashboard.refreshData}
-          onSimulatePhNull={dashboard.simulatePhNull}
-          isPhNull={dashboard.sensorData.ph === null}
         />
 
         {/* Scrollable View Canvas */}

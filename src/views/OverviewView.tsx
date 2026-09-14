@@ -1,5 +1,5 @@
 import React from "react";
-import { Thermometer, TestTube, Wind, Sun } from "lucide-react";
+import { Thermometer, Wind, Sun } from "lucide-react";
 import { SensorCard } from "@/components/sensors/SensorCard";
 import { SensorChart } from "@/components/sensors/SensorChart";
 import { DeviceStatusCard } from "@/components/device/DeviceStatusCard";
@@ -43,19 +43,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     return "normal";
   };
 
-  // pH status calculation
-  const getPhStatus = () => {
-    if (isOffline) return "offline";
-    if (sensorData.ph === null) return "unavailable";
-    if (
-      sensorData.ph < SENSOR_THRESHOLDS.ph.optimalMin ||
-      sensorData.ph > SENSOR_THRESHOLDS.ph.optimalMax
-    ) {
-      return "warning";
-    }
-    return "normal";
-  };
-
   // Gas index status calculation
   const getGasStatus = () => {
     if (isOffline) return "offline";
@@ -66,8 +53,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
-      {/* ROW 1: 4 Key Telemetry & Actuator Bento Cards */}
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* ROW 1: 3 Key Telemetry & Actuator Bento Cards */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: DS18B20 Temperature */}
         <SensorCard
           title="Culture Temperature"
@@ -81,20 +68,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           offline={isOffline}
         />
 
-        {/* Card 2: PH-4502C Acidity */}
-        <SensorCard
-          title="pH Acidity Level"
-          hardwareSensor="PH-4502C Gel Electrode"
-          value={sensorData.ph}
-          unit="pH"
-          status={getPhStatus()}
-          icon={<TestTube className="w-5 h-5 text-aura-cyan" />}
-          colorTheme="cyan"
-          sparkline="ph"
-          offline={isOffline}
-        />
-
-        {/* Card 3: MQ-135 Gas Index (Air Quality indication) */}
+        {/* Card 2: MQ-135 Gas Index (Air Quality indication) */}
         <SensorCard
           title="Gas Quality Index"
           hardwareSensor="MQ-135 Relative Idx"
@@ -107,7 +81,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           offline={isOffline}
         />
 
-        {/* Card 4: Lighting Status */}
+        {/* Card 3: Lighting Status */}
         <SensorCard
           title="Grow Light Status"
           hardwareSensor="Full Spectrum 660/450nm"
@@ -129,7 +103,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             timeRange={timeRange}
             onTimeRangeChange={setTimeRange}
             currentTemp={sensorData.temperature}
-            currentPh={sensorData.ph}
             currentGas={sensorData.gasIndex}
           />
         </div>
@@ -137,7 +110,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         <div className="lg:col-span-4 flex flex-col">
           <DeviceStatusCard
             deviceStatus={deviceStatus}
-            isPhNull={sensorData.ph === null}
             onNavigateToDevice={onNavigateToDevice}
           />
         </div>

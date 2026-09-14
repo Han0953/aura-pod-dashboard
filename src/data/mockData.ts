@@ -4,7 +4,6 @@ import { CarbonMetric, BiomassMetric } from "@/types/mrv";
 
 export const INITIAL_SENSOR_DATA: SensorData = {
   temperature: 24.3,
-  ph: 7.8,
   gasIndex: 142,
   timestamp: new Date().toISOString(),
 };
@@ -73,14 +72,12 @@ export function generateTelemetryHistory(range: "1H" | "6H" | "24H" | "7D"): Mul
     // Micro-sine wave simulation for biological consistency
     const phase = (count - i) / 3;
     const temp = Number((24.2 + Math.sin(phase) * 0.8 + (Math.random() * 0.2 - 0.1)).toFixed(1));
-    const ph = Number((7.8 + Math.cos(phase * 0.8) * 0.2 + (Math.random() * 0.08 - 0.04)).toFixed(2));
     const gas = Math.round(140 + Math.sin(phase * 1.2) * 15 + (Math.random() * 10 - 5));
 
     points.push({
       timestamp: time.toISOString(),
       timeLabel,
       temperature: temp,
-      ph,
       gasIndex: gas,
     });
   }

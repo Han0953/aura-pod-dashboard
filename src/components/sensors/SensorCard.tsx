@@ -10,7 +10,7 @@ interface SensorCardProps {
   status: StatusVariant;
   icon: React.ReactNode;
   colorTheme?: "mint" | "cyan" | "amber" | "emerald";
-  sparkline?: "temp" | "ph" | "gas" | "none";
+  sparkline?: "temp" | "gas" | "none";
   offline?: boolean;
 }
 
@@ -140,21 +140,7 @@ export const SensorCard: React.FC<SensorCardProps> = ({
                   <circle cx="96" cy="12" r="3" fill={theme.sparkStroke} />
                 </>
               )}
-              {sparkline === "ph" && (
-                <>
-                  <path
-                    d="M0 18 C 20 22, 35 15, 52 19 C 68 23, 78 12, 96 16 L 96 36 L 0 36 Z"
-                    fill={`url(#${theme.sparkGradientId})`}
-                  />
-                  <path
-                    d="M0 18 C 20 22, 35 15, 52 19 C 68 23, 78 12, 96 16"
-                    stroke={theme.sparkStroke}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="96" cy="16" r="3" fill={theme.sparkStroke} />
-                </>
-              )}
+
               {sparkline === "gas" && (
                 <>
                   <path

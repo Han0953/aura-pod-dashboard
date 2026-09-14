@@ -27,7 +27,6 @@ export interface DashboardContextType {
   toggleAerator: () => void;
   toggleOnline: () => void;
   refreshData: () => void;
-  simulatePhNull: () => void;
 }
 
 export function useDashboardData(): DashboardContextType {
@@ -76,18 +75,11 @@ export function useDashboardData(): DashboardContextType {
         const tempDelta = (Math.random() * 0.4 - 0.2);
         const nextTemp = Math.min(27.5, Math.max(21.5, Number((prev.temperature + tempDelta).toFixed(1))));
 
-        let nextPh = prev.ph;
-        if (prev.ph !== null) {
-          const phDelta = (Math.random() * 0.06 - 0.03);
-          nextPh = Math.min(8.5, Math.max(6.8, Number((prev.ph + phDelta).toFixed(2))));
-        }
-
         const gasDelta = Math.round(Math.random() * 8 - 4);
         const nextGas = Math.min(250, Math.max(90, (prev.gasIndex ?? 140) + gasDelta));
 
         return {
           temperature: nextTemp,
-          ph: nextPh,
           gasIndex: nextGas,
           timestamp: new Date().toISOString(),
         };
@@ -119,13 +111,6 @@ export function useDashboardData(): DashboardContextType {
     setDeviceStatus((prev) => ({ ...prev, online: !prev.online }));
   }, []);
 
-  const simulatePhNull = useCallback(() => {
-    setSensorData((prev) => ({
-      ...prev,
-      ph: prev.ph === null ? 7.8 : null,
-    }));
-  }, []);
-
   return {
     sensorData,
     deviceStatus,
@@ -141,6 +126,5 @@ export function useDashboardData(): DashboardContextType {
     toggleAerator,
     toggleOnline,
     refreshData,
-    simulatePhNull,
   };
 }

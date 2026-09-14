@@ -5,7 +5,6 @@ import {
   Fan,
   Wind,
   Thermometer,
-  TestTube,
   ArrowRight,
 } from "lucide-react";
 import { DeviceStatus } from "@/types/device";
@@ -13,13 +12,11 @@ import { cn } from "@/lib/utils";
 
 interface DeviceStatusCardProps {
   deviceStatus: DeviceStatus;
-  isPhNull: boolean;
   onNavigateToDevice?: () => void;
 }
 
 export const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
   deviceStatus,
-  isPhNull,
   onNavigateToDevice,
 }) => {
   const hardwareUnits = [
@@ -61,14 +58,6 @@ export const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
       icon: <Thermometer className="w-4 h-4 text-aura-primary" />,
       status: deviceStatus.online ? "Active" : "Standby",
       statusColor: "text-aura-primary bg-aura-surface-active",
-      isPulse: false,
-    },
-    {
-      name: "PH-4502C Sensor",
-      detail: "Gel Electrode Interface",
-      icon: <TestTube className="w-4 h-4 text-aura-cyan" />,
-      status: isPhNull || !deviceStatus.online ? "Disconnected" : "Active",
-      statusColor: isPhNull || !deviceStatus.online ? "text-aura-text-secondary bg-aura-surface-subtle" : "text-aura-cyan bg-aura-cyan/10",
       isPulse: false,
     },
   ];
@@ -148,7 +137,7 @@ export const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-aura-primary" />
           <span>
-            <strong className="text-aura-text-primary font-mono">{activeCount}/6</strong> Units Nominal
+            <strong className="text-aura-text-primary font-mono">{activeCount}/{hardwareUnits.length}</strong> Units Nominal
           </span>
         </div>
         <span className="font-mono text-[11px] text-aura-text-secondary">

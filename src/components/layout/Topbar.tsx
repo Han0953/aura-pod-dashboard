@@ -1,5 +1,5 @@
 import React from "react";
-import { RefreshCw, Radio, FlaskConical, Bell, Sun, Moon } from "lucide-react";
+import { RefreshCw, Radio, Bell, Sun, Moon } from "lucide-react";
 import { ViewId } from "@/types/navigation";
 import { DemoWatermark } from "@/components/common/DemoWatermark";
 import { useTheme } from "@/context/ThemeContext";
@@ -11,8 +11,6 @@ interface TopbarProps {
   lastUpdatedText: string;
   isRefreshing: boolean;
   onRefresh: () => void;
-  onSimulatePhNull: () => void;
-  isPhNull: boolean;
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
@@ -21,8 +19,6 @@ export const Topbar: React.FC<TopbarProps> = ({
   lastUpdatedText,
   isRefreshing,
   onRefresh,
-  onSimulatePhNull,
-  isPhNull,
 }) => {
   const { theme, toggleTheme } = useTheme();
 
@@ -36,7 +32,7 @@ export const Topbar: React.FC<TopbarProps> = ({
       case "monitoring":
         return {
           title: "Sensor Telemetry & Trends",
-          subtitle: "DS18B20 temperature, PH-4502C acidity, and MQ-135 Gas Index analytics",
+          subtitle: "DS18B20 temperature and MQ-135 Gas Index analytics",
         };
       case "device":
         return {
@@ -98,22 +94,6 @@ export const Topbar: React.FC<TopbarProps> = ({
 
         {/* Demo Mode Badge */}
         <DemoWatermark className="hidden xl:flex" />
-
-        {/* Test Toggle for pH Null State */}
-        <button
-          type="button"
-          onClick={onSimulatePhNull}
-          className={cn(
-            "hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors border cursor-pointer",
-            isPhNull
-              ? "bg-amber-500/10 text-aura-amber border-aura-amber/40"
-              : "bg-aura-surface-subtle text-aura-text-secondary border-aura-border hover:text-aura-text-primary"
-          )}
-          title="Klik untuk menyimulasikan kondisi modul pH dicabut/null"
-        >
-          <FlaskConical className="w-3.5 h-3.5" />
-          <span>{isPhNull ? "pH: Disconnected" : "Simulasi pH Null"}</span>
-        </button>
 
         {/* Sync Status Pill */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-aura-surface-subtle border border-aura-border text-xs">

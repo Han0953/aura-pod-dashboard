@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Thermometer,
-  TestTube,
   Wind,
   Download,
   TrendingUp,
@@ -28,8 +27,8 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Section 1: Comparative Detailed Sensor Clusters (3 Cards) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Section 1: Comparative Detailed Sensor Clusters (2 Cards) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Cluster 1: DS18B20 Temperature */}
         <div className="rounded-2xl bg-aura-surface border border-aura-border hover:border-aura-border-hover p-6 flex flex-col justify-between shadow-sm transition-all">
           <div>
@@ -90,76 +89,7 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
           </div>
         </div>
 
-        {/* Cluster 2: PH-4502C Acidity */}
-        <div className="rounded-2xl bg-aura-surface border border-aura-border hover:border-aura-border-hover p-6 flex flex-col justify-between shadow-sm transition-all">
-          <div>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-aura-cyan/10 border border-aura-cyan/30 flex items-center justify-center text-aura-cyan shadow-[0_0_12px_rgba(56,189,248,0.2)]">
-                  <TestTube className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-heading text-sm font-bold text-aura-text-primary">
-                    Culture Acidity (pH)
-                  </h3>
-                  <span className="text-[10px] text-aura-text-secondary font-mono uppercase tracking-wider">
-                    PH-4502C Interface
-                  </span>
-                </div>
-              </div>
-              <StatusBadge
-                variant={
-                  isOffline
-                    ? "offline"
-                    : sensorData.ph === null
-                    ? "unavailable"
-                    : "normal"
-                }
-                label={
-                  isOffline
-                    ? "Offline"
-                    : sensorData.ph === null
-                    ? "Probe Disconnected"
-                    : "Buffered"
-                }
-              />
-            </div>
-
-            <div className="flex items-baseline justify-between pt-4">
-              <div className="flex items-baseline gap-2">
-                <span className="font-heading text-3xl font-bold text-aura-text-primary tabular-nums">
-                  {isOffline || sensorData.ph === null ? "--" : sensorData.ph}
-                </span>
-                <span className="text-sm font-medium text-aura-cyan">pH</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-aura-cyan font-mono">
-                <span>Neutral Buffer</span>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-aura-border text-xs">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-mono text-aura-text-secondary">
-                Optimal Drift
-              </span>
-              <span className="font-mono font-bold text-aura-text-primary mt-0.5">
-                ±0.04 pH / hr
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] font-mono text-aura-text-secondary">
-                Alkaline Reserve
-              </span>
-              <span className="font-mono font-bold text-aura-cyan mt-0.5">
-                Balanced
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Cluster 3: MQ-135 Gas Index */}
+        {/* Cluster 2: MQ-135 Gas Index */}
         <div className="rounded-2xl bg-aura-surface border border-aura-border hover:border-aura-border-hover p-6 flex flex-col justify-between shadow-sm transition-all">
           <div>
             <div className="flex items-start justify-between">
@@ -225,7 +155,6 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
         timeRange={timeRange}
         onTimeRangeChange={setTimeRange}
         currentTemp={sensorData.temperature}
-        currentPh={sensorData.ph}
         currentGas={sensorData.gasIndex}
         title="Multi-Parameter Telemetry Stream & Convergence"
       />
@@ -264,7 +193,6 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
               <tr className="border-b border-aura-border text-aura-text-secondary uppercase tracking-wider font-mono text-[11px]">
                 <th className="pb-3 font-semibold">Timestamp</th>
                 <th className="pb-3 font-semibold">Culture Temp (°C)</th>
-                <th className="pb-3 font-semibold">pH Acidity</th>
                 <th className="pb-3 font-semibold">Gas Index (AQI)</th>
                 <th className="pb-3 font-semibold">Status Verification</th>
               </tr>
@@ -280,9 +208,6 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
                   </td>
                   <td className="py-3 text-aura-text-primary font-bold tabular-nums">
                     {point.temperature} °C
-                  </td>
-                  <td className="py-3 text-aura-cyan font-bold tabular-nums">
-                    {point.ph !== null ? `${point.ph} pH` : "Null (Disconnected)"}
                   </td>
                   <td className="py-3 text-aura-amber font-bold tabular-nums">
                     {point.gasIndex} AQI

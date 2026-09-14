@@ -195,7 +195,6 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
           <div className="text-aura-primary">[OK] Wi-Fi connected to SSID "AlgaLab-IoT-5G" (RSSI: -58 dBm)</div>
           <div className="text-aura-primary">[OK] Blynk IoT Protocol initialized. Auth Token verified.</div>
           <div className="text-aura-cyan">[OK] DS18B20 1-Wire bus detected at GPIO 4. Initial read: 24.2 °C</div>
-          <div className="text-aura-cyan">[OK] PH-4502C ADC1 sampled at GPIO 34. Raw ADC: 2154. pH: 7.82</div>
           <div className="text-aura-amber">[OK] MQ-135 pre-heat cycle stable. Gas Index baseline: 142</div>
           <div className="text-aura-primary">[OK] Actuator Relay 1 (Grow Light) state: ON</div>
           <div className="text-aura-primary">[OK] Actuator Relay 2 (Aerator) state: ON</div>
