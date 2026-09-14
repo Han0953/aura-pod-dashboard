@@ -7,6 +7,8 @@ interface ActuatorControlProps {
   aeratorOn: boolean;
   onToggleLed: () => void;
   onToggleAerator: () => void;
+  mode?: "manual" | "iot";
+  onToggleMode?: () => void;
   disabled?: boolean;
 }
 
@@ -15,8 +17,12 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
   aeratorOn,
   onToggleLed,
   onToggleAerator,
+  mode = "iot",
+  onToggleMode,
   disabled = false,
 }) => {
+  const isManual = mode === "manual";
+
   return (
     <div className="flex flex-col bg-aura-surface border border-aura-border rounded-2xl p-6 shadow-sm justify-between">
       <div>
@@ -34,15 +40,43 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
               </span>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-aura-surface-active text-aura-primary text-[11px] font-mono border border-aura-primary/30">
-            <Zap className="w-3 h-3 text-aura-primary" />
-            Active Bus
-          </span>
+
+          {/* Mode Switcher Pill (V4) */}
+          {onToggleMode ? (
+            <button
+              type="button"
+              onClick={onToggleMode}
+              disabled={disabled}
+              title="Klik untuk mengganti Mode Kontrol (Manual vs IoT)"
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold transition-all border cursor-pointer active:scale-95",
+                isManual
+                  ? "bg-amber-500/10 text-amber-500 border-amber-500/30 hover:bg-amber-500/20"
+                  : "bg-aura-surface-active text-aura-primary border-aura-primary/40 hover:bg-aura-primary/20 shadow-glow"
+              )}
+            >
+              <Zap className="w-3 h-3" />
+              <span>{isManual ? "Mode: Manual (V4:0)" : "Mode: IoT (V4:1)"}</span>
+            </button>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-aura-surface-active text-aura-primary text-[11px] font-mono border border-aura-primary/30">
+              <Zap className="w-3 h-3 text-aura-primary" />
+              Active Bus
+            </span>
+          )}
         </div>
 
-        <p className="text-xs text-aura-text-secondary mb-4">
-          Manual override switches for hardware relays
+        <p className="text-xs text-aura-text-secondary mb-3">
+          {isManual
+            ? "Mode Manual aktif: Kontrol berada pada tombol fisik hardware ESP32."
+            : "Mode IoT aktif: Kontrol relay aktif melalui cloud Blynk."}
         </p>
+
+        {isManual && (
+          <div className="mb-3 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-600 dark:text-amber-400 font-mono">
+            ⚠️ Mode Manual: Tombol web disinkronkan dengan hardware (tidak mengambil alih tombol fisik).
+          </div>
+        )}
 
         {/* Actuators Grid */}
         <div className="space-y-3">
@@ -84,7 +118,7 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
                     </span>
                   </div>
                   <span className="text-[11px] text-aura-text-secondary font-mono">
-                    Full Spectrum · 180 µmol PPFD
+                    GPIO 18 · Relay CH1 (V2)
                   </span>
                 </div>
               </div>
@@ -113,7 +147,7 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
             <div className="flex items-center justify-between text-[11px] text-aura-text-secondary mt-3 pt-2 border-t border-aura-border/50">
               <span>Power: ~10 W</span>
               <span className="font-mono text-aura-primary">
-                {ledOn ? "Schedule: 16h Photoperiod" : "Paused"}
+                {ledOn ? "Full Spectrum Active" : "Standby"}
               </span>
             </div>
           </div>
@@ -156,7 +190,7 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
                     </span>
                   </div>
                   <span className="text-[11px] text-aura-text-secondary font-mono">
-                    Micro-bubble Circulation
+                    GPIO 19 · Relay CH2 (V3)
                   </span>
                 </div>
               </div>
@@ -183,9 +217,9 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
 
             {/* Aerator metric row */}
             <div className="flex items-center justify-between text-[11px] text-aura-text-secondary mt-3 pt-2 border-t border-aura-border/50">
-              <span>Flow: ~1.5 L/min</span>
+              <span>Circulation Rate: ~1.5 L/min</span>
               <span className="font-mono text-aura-primary">
-                {aeratorOn ? "Continuous Aeration" : "Standby"}
+                {aeratorOn ? "Active Aeration" : "Standby"}
               </span>
             </div>
           </div>
@@ -193,8 +227,8 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
       </div>
 
       <div className="mt-4 text-[11px] text-aura-text-secondary flex items-center justify-between">
-        <span>Blynk Virtual Pins: V3, V4</span>
-        <span className="text-aura-primary font-mono">Relay Isolated</span>
+        <span>Blynk Datastreams: V2 (LED), V3 (AER), V4 (Mode)</span>
+        <span className="text-aura-primary font-mono">Active HIGH Relay</span>
       </div>
     </div>
   );

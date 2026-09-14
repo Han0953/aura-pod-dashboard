@@ -18,6 +18,7 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
     diagnostics,
     toggleLed,
     toggleAerator,
+    toggleMode,
     refreshData,
     isRefreshing,
   } = dashboard;
@@ -65,6 +66,8 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
             aeratorOn={deviceStatus.aerator}
             onToggleLed={toggleLed}
             onToggleAerator={toggleAerator}
+            mode={deviceStatus.mode}
+            onToggleMode={toggleMode}
             disabled={!deviceStatus.online}
           />
         </div>

@@ -9,9 +9,10 @@ export const INITIAL_SENSOR_DATA: SensorData = {
 };
 
 export const INITIAL_DEVICE_STATUS: DeviceStatus = {
-  online: true,
-  led: true,
-  aerator: true,
+  online: false,
+  led: false,
+  aerator: false,
+  mode: "manual",
 };
 
 export const MOCK_HARDWARE_DIAGNOSTICS: HardwareDiagnostic = {

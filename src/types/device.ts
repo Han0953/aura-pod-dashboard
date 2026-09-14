@@ -6,6 +6,7 @@ export interface DeviceStatus {
   online: boolean;
   led: boolean;
   aerator: boolean;
+  mode: "manual" | "iot";
 }
 
 export interface HardwareDiagnostic {

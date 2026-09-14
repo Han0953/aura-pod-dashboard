@@ -27,6 +27,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     setTimeRange,
     toggleLed,
     toggleAerator,
+    toggleMode,
   } = dashboard;
 
   const isOffline = !deviceStatus.online;
@@ -127,6 +128,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             aeratorOn={deviceStatus.aerator}
             onToggleLed={toggleLed}
             onToggleAerator={toggleAerator}
+            mode={deviceStatus.mode}
+            onToggleMode={toggleMode}
             disabled={isOffline}
           />
         </div>
