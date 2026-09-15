@@ -49,7 +49,7 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
               disabled={disabled}
               title="Klik untuk mengganti Mode Kontrol (Manual vs IoT)"
               className={cn(
-                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold transition-all border cursor-pointer active:scale-95",
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold transition-colors duration-150 border cursor-pointer",
                 isManual
                   ? "bg-amber-500/10 text-amber-500 border-amber-500/30 hover:bg-amber-500/20"
                   : "bg-aura-surface-active text-aura-primary border-aura-primary/40 hover:bg-aura-primary/20 shadow-glow"

@@ -50,7 +50,7 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
           <button
             onClick={refreshData}
             disabled={isRefreshing}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-aura-surface-active hover:bg-aura-border/40 text-xs font-semibold text-aura-primary border border-aura-primary/30 transition-all shadow-glow active:scale-95"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-aura-surface-active hover:bg-aura-border/40 text-xs font-semibold text-aura-primary border border-aura-primary/30 transition-colors shadow-glow"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
             <span>Hardware Health Ping</span>

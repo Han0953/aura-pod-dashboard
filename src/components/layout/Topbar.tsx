@@ -126,7 +126,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           aria-label={theme === "dark" ? "Ganti ke Light Mode" : "Ganti ke Dark Mode"}
           title={theme === "dark" ? "Ganti ke Light Mode" : "Ganti ke Dark Mode"}
           className={cn(
-            "p-2 rounded-lg border transition-all duration-200 active:scale-95 shadow-sm cursor-pointer",
+            "p-2 rounded-lg border transition-colors duration-150 shadow-sm cursor-pointer",
             theme === "dark"
               ? "bg-aura-surface-subtle border-aura-border text-amber-400 hover:bg-aura-border/40 hover:border-amber-400/40"
               : "bg-white border-aura-border text-emerald-700 hover:bg-aura-surface-subtle"

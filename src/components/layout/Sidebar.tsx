@@ -68,47 +68,53 @@ export const Sidebar: React.FC<SidebarProps> = ({
       });
     }
 
-    // 2. Liquid micro-float wave across ALL icons (Logo, Nav items, ESP32, Logout)
-    gsap.fromTo(
-      ".sidebar-nav-icon",
-      {
-        y: isCollapsed ? -4 : 4,
-        scale: 0.93,
-        opacity: 0.8,
-      },
-      {
-        y: 0,
-        scale: 1,
-        opacity: 1,
-        duration: 0.36,
-        stagger: {
-          each: 0.02,
-          from: isCollapsed ? "start" : "end",
-        },
-        ease: "power2.out",
-      }
-    );
+    // 2. Keep icon transform strictly fixed (zero x/y jitter or horizontal bounce)
+    gsap.set(".sidebar-nav-icon", { x: 0, y: 0 });
 
-    // 3. GSAP animations for toggle buttons under Core Navigation
+    // 3. Smooth vertical glide on navigation items & Core Navigation title
     if (!isCollapsed) {
-      // Opening: smooth staggered slide-in of labels, badges and section header
+      // Opening: Navigation items smoothly glide DOWNWARDS to accommodate the Core Navigation title
+      gsap.fromTo(
+        ".sidebar-item-wave",
+        { y: -20 },
+        { y: 0, duration: 0.32, ease: "power2.out" }
+      );
+
+      // Core Navigation title smoothly slides down and fades in
+      gsap.fromTo(
+        ".sidebar-section-title",
+        { opacity: 0, y: -8 },
+        { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }
+      );
+
+      // Staggered slide-in of labels and badges
       gsap.fromTo(
         ".sidebar-nav-label",
         { x: -14, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.32, stagger: 0.025, ease: "power2.out" }
+        { x: 0, opacity: 1, duration: 0.32, stagger: 0.02, ease: "power2.out" }
       );
       gsap.fromTo(
         ".sidebar-nav-badge",
-        { scale: 0.6, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.3, stagger: 0.025, delay: 0.08, ease: "back.out(1.5)" }
-      );
-      gsap.fromTo(
-        ".sidebar-section-title",
-        { opacity: 0, y: -4 },
-        { opacity: 1, y: 0, duration: 0.25, ease: "power2.out" }
+        { opacity: 0 },
+        { opacity: 1, duration: 0.25, stagger: 0.02, delay: 0.08, ease: "power2.out" }
       );
     } else {
-      // Closing: smooth slide-out
+      // Closing: Navigation items smoothly glide UPWARDS as Core Navigation title collapses
+      gsap.fromTo(
+        ".sidebar-item-wave",
+        { y: 20 },
+        { y: 0, duration: 0.32, ease: "power2.out" }
+      );
+
+      // Core Navigation title smoothly slides up and fades out
+      gsap.to(".sidebar-section-title", {
+        opacity: 0,
+        y: -8,
+        duration: 0.2,
+        ease: "power2.in",
+      });
+
+      // Smooth slide-out of labels and badges
       gsap.to(".sidebar-nav-label", {
         x: -10,
         opacity: 0,
@@ -117,19 +123,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ease: "power2.in",
       });
       gsap.to(".sidebar-nav-badge", {
-        scale: 0.7,
         opacity: 0,
         duration: 0.15,
         ease: "power2.in",
       });
     }
-
-    // 4. Subtle active item breathing feedback
-    gsap.fromTo(
-      ".sidebar-item-active",
-      { scale: 0.96 },
-      { scale: 1, duration: 0.32, ease: "back.out(1.4)" }
-    );
   }, [isCollapsed]);
 
   // GSAP Grand Entrance Wave (runs only once on initial entrance)
@@ -233,8 +231,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex-1 py-4 px-3.5 overflow-y-auto space-y-1.5 overflow-x-hidden">
         <div
           className={cn(
-            "sidebar-section-title text-[10px] font-semibold uppercase tracking-wider text-aura-text-secondary transition-[opacity,max-width] duration-300 overflow-hidden whitespace-nowrap px-1",
-            isCollapsed ? "opacity-0 max-w-0 h-0 my-0 py-0" : "opacity-100 max-w-full"
+            "sidebar-section-title text-[10px] font-semibold uppercase tracking-wider text-aura-text-secondary overflow-hidden whitespace-nowrap px-1",
+            isCollapsed ? "opacity-0 max-w-0 h-0 my-0 py-0 pointer-events-none" : "opacity-100 max-w-full h-5 my-0.5"
           )}
         >
           Core Navigation
@@ -251,12 +249,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               disabled={isDisabled}
               title={isCollapsed ? item.label : undefined}
               className={cn(
-                "sidebar-item-wave w-full h-11 flex items-center justify-start rounded-xl text-sm font-medium transition-colors duration-150 group cursor-pointer relative overflow-hidden",
+                "sidebar-item-wave h-11 flex items-center justify-start rounded-xl text-sm font-medium transition-colors duration-150 group cursor-pointer relative overflow-hidden border",
+                isCollapsed ? "w-11" : "w-full",
                 isActive
-                  ? "sidebar-item-active bg-aura-surface-active text-aura-primary border border-aura-primary/40 shadow-glow font-semibold"
+                  ? "sidebar-item-active bg-aura-surface-active text-aura-primary border-aura-primary/40 shadow-glow font-semibold"
                   : isDisabled
-                  ? "text-aura-text-secondary/40 cursor-not-allowed hover:bg-transparent"
-                  : "text-aura-text-secondary hover:text-aura-text-primary hover:bg-aura-surface-subtle"
+                  ? "text-aura-text-secondary/40 cursor-not-allowed hover:bg-transparent border-transparent"
+                  : "text-aura-text-secondary hover:text-aura-text-primary hover:bg-aura-surface-subtle border-transparent"
               )}
             >
               {/* Fixed Icon Wrapper: with sidebar-nav-icon for GSAP micro-float */}
@@ -345,7 +344,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span
               className={cn(
                 "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium font-mono transition-[opacity,max-width] duration-300 whitespace-nowrap overflow-hidden shrink-0",
-                isCollapsed ? "opacity-0 max-w-0 pointer-events-none scale-90" : "opacity-100 max-w-[80px]",
+                isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[80px]",
                 isEspOnline
                   ? "bg-aura-surface-active text-aura-primary border border-aura-primary/30"
                   : "bg-red-500/10 text-red-500 border border-red-500/30"
@@ -393,7 +392,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={onLogout}
             title={isCollapsed ? "Keluar Sistem" : undefined}
-            className="w-full h-11 flex items-center justify-start rounded-xl text-xs font-medium text-aura-text-secondary hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-colors cursor-pointer group overflow-hidden"
+            className={cn(
+              "h-11 flex items-center justify-start rounded-xl text-xs font-medium text-aura-text-secondary hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-colors duration-150 cursor-pointer group overflow-hidden",
+              isCollapsed ? "w-11" : "w-full"
+            )}
           >
             {/* Fixed Icon Slot with sidebar-nav-icon for GSAP animation */}
             <span className="sidebar-nav-icon w-11 h-11 flex items-center justify-center shrink-0 will-change-transform">
