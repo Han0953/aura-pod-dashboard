@@ -51,44 +51,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  // GSAP Grand Entrance Wave & Living Icon Pop
+  // GSAP Grand Entrance Wave (runs only once on initial entrance)
   useEffect(() => {
     if (!isEntrance || !sidebarRef.current) return;
 
     const ctx = gsap.context(() => {
-      // 1. Sidebar Container Slide In
       gsap.fromTo(
         sidebarRef.current,
         { xPercent: -100, opacity: 0 },
-        { xPercent: 0, opacity: 1, duration: 0.7, ease: "power3.out" }
+        { xPercent: 0, opacity: 1, duration: 0.6, ease: "power2.out" }
       );
 
-      // 2. Navigation items staggered wave
       gsap.fromTo(
         ".sidebar-item-wave",
-        { opacity: 0, x: -20 },
+        { opacity: 0, x: -16 },
         {
           opacity: 1,
           x: 0,
           duration: 0.35,
-          stagger: 0.06,
-          delay: 0.25,
+          stagger: 0.05,
+          delay: 0.2,
           ease: "power2.out",
-        }
-      );
-
-      // 3. Living icon pop with elastic overshoot
-      gsap.fromTo(
-        ".sidebar-icon-pop",
-        { scale: 0.2, rotate: -15, opacity: 0 },
-        {
-          scale: 1,
-          rotate: 0,
-          opacity: 1,
-          duration: 0.45,
-          stagger: 0.06,
-          delay: 0.3,
-          ease: "back.out(2)",
         }
       );
     }, sidebarRef);
@@ -115,76 +98,63 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       ref={sidebarRef}
       className={cn(
-        "h-screen bg-aura-surface border-r border-aura-border flex flex-col justify-between shrink-0 select-none z-30 transition-all duration-300 ease-in-out",
+        "h-screen bg-aura-surface border-r border-aura-border flex flex-col justify-between shrink-0 select-none z-30 transition-[width] duration-300 ease-in-out relative",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
-      {/* ── Brand Header ── */}
-      <div className={cn("p-4 border-b border-aura-border/50", isCollapsed ? "px-3" : "px-5")}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            {/* Logo Box: Fixed in place, never shifts or disappears */}
-            <div className="w-11 h-11 rounded-xl bg-aura-surface-active border border-aura-primary/30 flex items-center justify-center p-1.5 shadow-glow shrink-0">
-              <img
-                src="/aura-pod-logo.svg"
-                alt="AURA Pod"
-                className="w-full h-full object-contain"
-              />
-            </div>
+      {/* ── Brand Header (Fixed 72px Height) ── */}
+      <div className="relative h-20 px-3.5 border-b border-aura-border/50 flex items-center shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Logo Box: 100% Fixed at left:14px, NEVER moves */}
+          <div className="w-11 h-11 rounded-xl bg-aura-surface-active border border-aura-primary/30 flex items-center justify-center p-1.5 shadow-glow shrink-0">
+            <img
+              src="/aura-pod-logo.svg"
+              alt="AURA Pod"
+              className="w-full h-full object-contain"
+            />
+          </div>
 
-            {/* Brand Texts: Disappear smoothly when collapsed */}
-            <div
-              className={cn(
-                "flex flex-col transition-all duration-300 whitespace-nowrap overflow-hidden",
-                isCollapsed ? "opacity-0 max-w-0 pointer-events-none -translate-x-2" : "opacity-100 max-w-[140px] translate-x-0"
-              )}
-            >
-              <div className="flex items-center gap-1.5">
-                <span className="font-heading font-bold text-base text-aura-text-primary tracking-tight">
-                  AURA Pod
-                </span>
-                <span className="px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider rounded bg-aura-surface-active text-aura-primary border border-aura-primary/30">
-                  IoT
-                </span>
-              </div>
-              <span className="text-[11px] text-aura-text-secondary truncate">
-                Bioreactor Dashboard
+          {/* Brand Texts: Smooth fade and collapse without any transform jitter */}
+          <div
+            className={cn(
+              "flex flex-col transition-[opacity,max-width] duration-300 whitespace-nowrap overflow-hidden",
+              isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[140px]"
+            )}
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="font-heading font-bold text-base text-aura-text-primary tracking-tight">
+                AURA Pod
+              </span>
+              <span className="px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider rounded bg-aura-surface-active text-aura-primary border border-aura-primary/30">
+                IoT
               </span>
             </div>
+            <span className="text-[11px] text-aura-text-secondary truncate">
+              Bioreactor Dashboard
+            </span>
           </div>
-
-          {/* Collapse Toggle Button */}
-          {!isCollapsed && (
-            <button
-              onClick={toggleCollapse}
-              className="p-1.5 rounded-lg text-aura-text-secondary hover:text-aura-text-primary hover:bg-aura-surface-subtle transition-colors cursor-pointer shrink-0"
-              title="Tutup Sidebar"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          )}
         </div>
 
-        {/* Dedicated centered toggle button when collapsed */}
-        {isCollapsed && (
-          <div className="mt-3 flex justify-center">
-            <button
-              onClick={toggleCollapse}
-              className="p-1.5 rounded-lg text-aura-text-secondary hover:text-aura-text-primary hover:bg-aura-surface-subtle transition-colors cursor-pointer"
-              title="Buka Sidebar"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        {/* Collapse Toggle Button: Mounted to right edge, perfectly aligned with the center of the logo */}
+        <button
+          onClick={toggleCollapse}
+          className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-aura-surface border border-aura-border shadow-md flex items-center justify-center text-aura-text-secondary hover:text-aura-primary hover:border-aura-primary/50 hover:bg-aura-surface-active cursor-pointer z-50 transition-colors"
+          title={isCollapsed ? "Buka Sidebar" : "Tutup Sidebar"}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-3.5 h-3.5 text-aura-primary" />
+          ) : (
+            <ChevronLeft className="w-3.5 h-3.5 text-aura-primary" />
+          )}
+        </button>
       </div>
 
       {/* ── Navigation Links ── */}
-      <div className="flex-1 py-4 px-2.5 overflow-y-auto space-y-1 overflow-x-hidden">
+      <div className="flex-1 py-4 px-3.5 overflow-y-auto space-y-1.5 overflow-x-hidden">
         <div
           className={cn(
-            "text-[10px] font-semibold uppercase tracking-wider text-aura-text-secondary transition-all duration-300 overflow-hidden whitespace-nowrap",
-            isCollapsed ? "opacity-0 max-w-0 h-0 my-0 py-0" : "px-3 py-1.5 opacity-100 max-w-full"
+            "text-[10px] font-semibold uppercase tracking-wider text-aura-text-secondary transition-[opacity,max-width] duration-300 overflow-hidden whitespace-nowrap px-1",
+            isCollapsed ? "opacity-0 max-w-0 h-0 my-0 py-0" : "opacity-100 max-w-full"
           )}
         >
           Core Navigation
@@ -201,8 +171,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               disabled={isDisabled}
               title={isCollapsed ? item.label : undefined}
               className={cn(
-                "sidebar-item-wave w-full flex items-center rounded-xl text-sm font-medium transition-all duration-200 group cursor-pointer relative",
-                isCollapsed ? "justify-center p-2.5" : "justify-between px-3 py-2.5",
+                "sidebar-item-wave w-full h-11 flex items-center justify-start rounded-xl text-sm font-medium transition-colors duration-150 group cursor-pointer relative overflow-hidden",
                 isActive
                   ? "bg-aura-surface-active text-aura-primary border border-aura-primary/40 shadow-glow font-semibold"
                   : isDisabled
@@ -210,11 +179,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : "text-aura-text-secondary hover:text-aura-text-primary hover:bg-aura-surface-subtle"
               )}
             >
-              <div className="flex items-center gap-3 min-w-0">
-                {/* Fixed Icon Container */}
+              {/* Fixed Icon Wrapper: 100% Fixed at left, identically sized to logo box width */}
+              <span className="w-11 h-11 flex items-center justify-center shrink-0">
                 <span
                   className={cn(
-                    "sidebar-icon-pop flex items-center justify-center shrink-0 w-5 h-5 transition-colors",
+                    "transition-colors",
                     isActive
                       ? "text-aura-primary"
                       : isDisabled
@@ -224,21 +193,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 >
                   {getNavIcon(item.id)}
                 </span>
+              </span>
 
-                {/* Text Label: Disappears cleanly when collapsed */}
-                <span
-                  className={cn(
-                    "transition-all duration-300 whitespace-nowrap overflow-hidden text-left",
-                    isCollapsed ? "opacity-0 max-w-0 -translate-x-2" : "opacity-100 max-w-[140px] translate-x-0"
-                  )}
-                >
-                  {item.label}
-                </span>
-              </div>
+              {/* Text Label: Disappears cleanly without jumping */}
+              <span
+                className={cn(
+                  "transition-[opacity,max-width] duration-300 whitespace-nowrap overflow-hidden text-left font-medium ml-1",
+                  isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[125px]"
+                )}
+              >
+                {item.label}
+              </span>
 
               {/* Badge: hidden when collapsed */}
               {!isCollapsed && item.badge && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-aura-surface-subtle text-aura-text-secondary font-mono border border-aura-border shrink-0">
+                <span className="ml-auto mr-2 text-[10px] px-1.5 py-0.5 rounded-full bg-aura-surface-subtle text-aura-text-secondary font-mono border border-aura-border shrink-0">
                   {item.badge}
                 </span>
               )}
@@ -248,9 +217,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* ── Hardware Connection, Logout & Status Footer ── */}
-      <div className={cn("space-y-3 bg-aura-surface transition-all duration-300 border-t border-aura-border/50", isCollapsed ? "p-2.5" : "p-4")}>
-        {/* Expanded Mode: Full Hardware Status Card */}
+      <div className="px-3.5 py-3 space-y-2 bg-aura-surface border-t border-aura-border/50 shrink-0">
+        {/* ESP32 Hardware Status */}
         {!isCollapsed ? (
+          /* Expanded Mode: Full Card */
           <div className="p-3 rounded-xl bg-aura-surface-subtle/50 border border-aura-border/60 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -294,56 +264,51 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           </div>
         ) : (
-          /* Collapsed Mode: Compact Beacon Indicator */
-          <div className="flex flex-col items-center gap-2 py-1">
-            <div
-              className="relative p-2.5 rounded-xl bg-aura-surface-subtle border border-aura-border flex items-center justify-center cursor-pointer group"
-              title={isEspOnline ? "ESP32 Core: Online" : "ESP32 Core: Offline"}
+          /* Collapsed Mode: Fixed Icon Beacon aligned with nav icons */
+          <div className="w-full h-11 flex items-center justify-start">
+            <button
               onClick={onRefresh}
+              className="w-11 h-11 rounded-xl bg-aura-surface-subtle border border-aura-border flex items-center justify-center relative cursor-pointer hover:bg-aura-surface-active transition-colors shrink-0"
+              title={isEspOnline ? "ESP32 Online - Klik untuk sinkronisasi" : "ESP32 Offline"}
             >
               <Radio className={cn("w-4 h-4", isEspOnline ? "text-aura-primary" : "text-red-500")} />
               <span
                 className={cn(
-                  "absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-aura-surface",
+                  "absolute top-1.5 right-1.5 w-2 h-2 rounded-full border-2 border-aura-surface",
                   isEspOnline ? "bg-aura-primary animate-pulse" : "bg-red-500"
                 )}
               />
-            </div>
+            </button>
           </div>
         )}
 
-        {/* ── Logout Button ── */}
+        {/* ── Logout Button (Identical Fixed Anchor in both states) ── */}
         {onLogout && (
           <button
             onClick={onLogout}
             title={isCollapsed ? "Keluar Sistem" : undefined}
-            className={cn(
-              "w-full flex items-center rounded-xl text-xs font-medium text-aura-text-secondary hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all duration-150 cursor-pointer group",
-              isCollapsed ? "justify-center p-2.5" : "justify-between px-3 py-2"
-            )}
+            className="w-full h-11 flex items-center justify-start rounded-xl text-xs font-medium text-aura-text-secondary hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-colors cursor-pointer group overflow-hidden"
           >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <LogOut className="w-4 h-4 text-aura-text-secondary group-hover:text-red-400 transition-colors shrink-0" />
-              <span
-                className={cn(
-                  "transition-all duration-300 whitespace-nowrap overflow-hidden",
-                  isCollapsed ? "opacity-0 max-w-0 -translate-x-2" : "opacity-100 max-w-[140px] translate-x-0"
-                )}
-              >
-                Keluar Sistem
-              </span>
-            </div>
-            {!isCollapsed && (
-              <span className="text-[10px] text-aura-text-secondary/60 group-hover:text-red-400/80 font-mono">
-                Log out
-              </span>
-            )}
+            {/* Fixed Icon Slot: Exactly 44px (w-11) */}
+            <span className="w-11 h-11 flex items-center justify-center shrink-0">
+              <LogOut className="w-4 h-4 text-aura-text-secondary group-hover:text-red-400 transition-colors" />
+            </span>
+
+            {/* Label: Disappears without horizontal translation */}
+            <span
+              className={cn(
+                "transition-[opacity,max-width] duration-300 whitespace-nowrap overflow-hidden font-medium ml-1",
+                isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[130px]"
+              )}
+            >
+              Keluar Sistem
+            </span>
           </button>
         )}
 
         {/* Version info: Only shown when expanded */}
         {!isCollapsed && (
-          <div className="flex items-center justify-between px-1 text-[10px] text-aura-text-secondary/70 font-mono">
+          <div className="flex items-center justify-between px-1 text-[10px] text-aura-text-secondary/70 font-mono pt-1">
             <span>{APP_CONFIG.version}</span>
             <span>ESP32-WROOM</span>
           </div>
