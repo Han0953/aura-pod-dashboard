@@ -27,19 +27,19 @@
     color-scheme: light;
   }
 
-  /* DARK THEME: Deep Green Near Black per DESIGN.md (#051310 canvas, #0A1915 cards, #16332B border, #00E599 mint) */
+  /* DARK THEME: Pure OLED Black with ultra-deep emerald cards (#000000 canvas, #050907 cards, #0E1813 border, #00E599 mint) */
   html.dark,
   body.dark,
   [data-theme="dark"],
   .dark {
-    --bg-canvas: 5 19 16;              /* #051310 deep dark green near black */
-    --surface-card: 10 25 21;          /* #0A1915 dark green bento surface */
-    --surface-subtle: 8 22 18;         /* #081612 dark green subtle */
-    --surface-active: 18 43 35;        /* #122B23 dark teal-green active */
-    --border-color: 22 51 43;          /* #16332B deep dark green border */
-    --border-hover: 34 76 64;          /* #224C40 */
+    --bg-canvas: 0 0 0;                /* #000000 True OLED Black (pixels turned off) */
+    --surface-card: 5 9 7;             /* #050907 Ultra-dark obsidian with faint emerald shadow */
+    --surface-subtle: 3 6 4;           /* #030604 Ultra-deep subtle surface */
+    --surface-active: 10 20 15;        /* #0A140F Faint emerald active highlight */
+    --border-color: 14 24 19;          /* #0E1813 Stealth obsidian-green border */
+    --border-hover: 22 38 29;          /* #16261D Subtle border hover */
     --text-primary: 255 255 255;       /* #FFFFFF crisp white */
-    --text-secondary: 125 155 145;     /* #7D9B91 muted bio-teal */
+    --text-secondary: 140 160 152;     /* #8CA098 high-clarity muted sage */
     --primary-mint: 0 229 153;         /* #00E599 neon mint */
     --primary-hover: 0 201 133;        /* #00C985 */
     --secondary-cyan: 56 189 248;      /* #38BDF8 */
