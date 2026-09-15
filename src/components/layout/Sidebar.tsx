@@ -48,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Brand Header */}
       <div className="p-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-aura-surface-active border border-aura-primary/30 flex items-center justify-center p-1.5 shadow-glow">
+          <div className="w-12 h-12 rounded-xl bg-aura-surface-active border border-aura-primary/30 flex items-center justify-center p-1.5 shadow-glow shrink-0">
             <img
               src="/aura-pod-logo.svg"
               alt="AURA Pod"
@@ -57,10 +57,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
-              <span className="font-heading font-bold text-base text-aura-text-primary tracking-tight">
+              <span className="font-heading font-bold text-lg text-aura-text-primary tracking-tight">
                 AURA Pod
               </span>
-              <span className="px-1.5 py-0.2 text-[10px] font-semibold uppercase tracking-wider rounded bg-aura-surface-active text-aura-primary border border-aura-primary/30">
+              <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded bg-aura-surface-active text-aura-primary border border-aura-primary/30">
                 IoT
               </span>
             </div>

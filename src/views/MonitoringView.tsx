@@ -128,9 +128,7 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
             <div className="flex items-baseline justify-between pt-4">
               <div className="flex items-baseline gap-2">
                 <span className="font-heading text-3xl font-bold text-aura-text-primary tabular-nums">
-                  {isOffline || sensorData.gasIndex === null
-                    ? "--"
-                    : sensorData.gasIndex}
+                  {sensorData.gasIndex ?? 0}
                 </span>
                 <span className="text-sm font-medium text-aura-amber">AQI Idx</span>
               </div>

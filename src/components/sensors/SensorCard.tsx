@@ -53,7 +53,7 @@ export const SensorCard: React.FC<SensorCardProps> = ({
   };
 
   const theme = getThemeStyles();
-  const isUnavailable = value === null || offline;
+  const displayValue = value !== null && value !== undefined ? value : 0;
 
   return (
     <div className="flex flex-col justify-between bg-aura-surface border border-aura-border hover:border-aura-border-hover p-5 rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md group">
@@ -79,40 +79,27 @@ export const SensorCard: React.FC<SensorCardProps> = ({
         </div>
 
         <StatusBadge
-          variant={offline ? "offline" : isUnavailable ? "unavailable" : status}
-          label={offline ? "ESP32 Offline" : isUnavailable ? "Disconnected" : undefined}
+          variant={offline ? "offline" : status}
+          label={offline ? "ESP32 Offline" : undefined}
         />
       </div>
 
       {/* Main Metric Value & Mini Sparkline */}
       <div className="flex items-baseline justify-between mt-4 mb-2">
         <div className="flex items-baseline gap-1.5">
-          {isUnavailable ? (
-            <div className="flex flex-col">
-              <span className="font-heading text-2xl font-bold text-aura-text-secondary/60">
-                --
-              </span>
-              <span className="text-[11px] text-aura-text-secondary/50 font-mono">
-                {offline ? "Device offline" : "No telemetry"}
-              </span>
-            </div>
-          ) : (
-            <>
-              <span className="font-heading text-3xl font-bold text-aura-text-primary tabular-nums tracking-tight">
-                {value}
-              </span>
-              {unit && (
-                <span className="text-sm text-aura-text-secondary font-medium">
-                  {unit}
-                </span>
-              )}
-            </>
+          <span className="font-heading text-3xl font-bold text-aura-text-primary tabular-nums tracking-tight">
+            {displayValue}
+          </span>
+          {unit && (
+            <span className="text-sm text-aura-text-secondary font-medium">
+              {unit}
+            </span>
           )}
         </div>
 
         {/* Mini SVG Sparkline */}
-        {!isUnavailable && sparkline !== "none" && (
-          <div className="w-24 h-9 overflow-visible">
+        {sparkline !== "none" && (
+          <div className={cn("w-24 h-9 overflow-visible transition-opacity", offline && "opacity-70")}>
             <svg
               className="w-full h-full overflow-visible"
               fill="none"

@@ -8,6 +8,7 @@ import {
   MOCK_HARDWARE_DIAGNOSTICS,
   MOCK_CARBON_METRIC,
   MOCK_BIOMASS_METRIC,
+  generateTelemetryHistory,
 } from "@/data/mockData";
 import { APP_CONFIG } from "@/lib/constants";
 import { blynkService } from "./blynkService";
@@ -63,11 +64,23 @@ export function useDashboardData(): DashboardContextType {
   const [carbonMetric] = useState<CarbonMetric>(MOCK_CARBON_METRIC);
   const [biomassMetric] = useState<BiomassMetric>(MOCK_BIOMASS_METRIC);
   const [timeRange, setTimeRange] = useState<"1H" | "6H" | "24H" | "7D">("1H");
-  const [rawHistory, setRawHistory] = useState<MultiSeriesSensorPoint[]>(() => loadStoredHistory());
+  const [rawHistory, setRawHistory] = useState<MultiSeriesSensorPoint[]>(() => {
+    const stored = loadStoredHistory();
+    if (stored.length > 0) return stored;
+    return generateTelemetryHistory("1H");
+  });
   const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
   const [lastUpdatedText, setLastUpdatedText] = useState<string>("Connecting to ESP32...");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const isBlynkConfigured = blynkService.isConfigured();
+
+  // If no stored history yet, update 0-point baseline whenever timeframe changes
+  useEffect(() => {
+    const stored = loadStoredHistory();
+    if (stored.length === 0) {
+      setRawHistory(generateTelemetryHistory(timeRange));
+    }
+  }, [timeRange]);
 
   // Relative time counter
   useEffect(() => {
@@ -95,13 +108,35 @@ export function useDashboardData(): DashboardContextType {
           blynkService.fetchAllPins(),
         ]);
 
-        setDeviceStatus((prev) => ({
-          ...prev,
-          online: isOnline,
-          led: blynkData ? blynkData.led : prev.led,
-          aerator: blynkData ? blynkData.aerator : prev.aerator,
-          mode: blynkData ? blynkData.mode : prev.mode,
-        }));
+        if (isOnline) {
+          setDeviceStatus((prev) => {
+            const wasOffline = !prev.online;
+            // Default to IoT mode when reconnecting from offline
+            const nextMode = wasOffline ? "iot" : (blynkData ? blynkData.mode : prev.mode);
+
+            if (wasOffline && blynkData && blynkData.mode !== "iot") {
+              // Ensure Blynk Cloud V4 is set to 1 (IoT mode)
+              blynkService.updatePin("v4", 1).catch(() => {});
+            }
+
+            return {
+              ...prev,
+              online: true,
+              led: blynkData ? blynkData.led : prev.led,
+              aerator: blynkData ? blynkData.aerator : prev.aerator,
+              mode: nextMode,
+            };
+          });
+        } else {
+          // ESP32 Disconnected / Nonaktif: Mati total (LED & Aerator OFF)
+          setDeviceStatus((prev) => ({
+            ...prev,
+            online: false,
+            led: false,     // Mati total
+            aerator: false, // Mati total
+            mode: "iot",    // Siap otomatis mode IoT saat connect kembali
+          }));
+        }
 
         if (blynkData && isOnline) {
           setSensorData({
@@ -135,7 +170,10 @@ export function useDashboardData(): DashboardContextType {
               temperature: blynkData.temperature,
               gasIndex: blynkData.gasIndex,
             };
-            const updated = [...prev, nextPoint].slice(-MAX_HISTORY_POINTS);
+            const hasReal = prev.some((p) => p.temperature > 0 || (p.gasIndex !== null && p.gasIndex > 0));
+            const updated = hasReal
+              ? [...prev, nextPoint].slice(-MAX_HISTORY_POINTS)
+              : [...prev.slice(1), nextPoint];
             saveStoredHistory(updated);
             return updated;
           });
@@ -153,23 +191,10 @@ export function useDashboardData(): DashboardContextType {
     }
   }, []);
 
-  // Filter telemetry history by selected timeframe window
+  // Telemetry history with 0 baseline or live rolling stream
   const telemetryHistory = useMemo(() => {
-    if (rawHistory.length === 0) return [];
-    const now = Date.now();
-    let windowMs = 60 * 60 * 1000; // 1H
-    if (timeRange === "6H") windowMs = 6 * 60 * 60 * 1000;
-    else if (timeRange === "24H") windowMs = 24 * 60 * 60 * 1000;
-    else if (timeRange === "7D") windowMs = 7 * 24 * 60 * 60 * 1000;
-
-    const cutoff = now - windowMs;
-    const filtered = rawHistory.filter((pt) => {
-      const ptTime = new Date(pt.timestamp).getTime();
-      return !isNaN(ptTime) && ptTime >= cutoff;
-    });
-
-    // If recording just started and filtered items are few, show available real points
-    return filtered.length > 0 ? filtered : rawHistory;
+    if (rawHistory.length === 0) return generateTelemetryHistory(timeRange);
+    return rawHistory;
   }, [rawHistory, timeRange]);
 
   // Periodic polling

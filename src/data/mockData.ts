@@ -12,7 +12,7 @@ export const INITIAL_DEVICE_STATUS: DeviceStatus = {
   online: false,
   led: false,
   aerator: false,
-  mode: "manual",
+  mode: "iot",
 };
 
 export const MOCK_HARDWARE_DIAGNOSTICS: HardwareDiagnostic = {
@@ -70,16 +70,11 @@ export function generateTelemetryHistory(range: "1H" | "6H" | "24H" | "7D"): Mul
         ? time.toLocaleDateString("en-US", { weekday: "short", day: "numeric" })
         : time.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
 
-    // Micro-sine wave simulation for biological consistency
-    const phase = (count - i) / 3;
-    const temp = Number((24.2 + Math.sin(phase) * 0.8 + (Math.random() * 0.2 - 0.1)).toFixed(1));
-    const gas = Math.round(140 + Math.sin(phase * 1.2) * 15 + (Math.random() * 10 - 5));
-
     points.push({
       timestamp: time.toISOString(),
       timeLabel,
-      temperature: temp,
-      gasIndex: gas,
+      temperature: 0,
+      gasIndex: 0,
     });
   }
 

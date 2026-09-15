@@ -1,12 +1,12 @@
 import React from "react";
-import { RefreshCw, Radio, Bell, Sun, Moon } from "lucide-react";
+import { RefreshCw, Bell, Sun, Moon } from "lucide-react";
 import { ViewId } from "@/types/navigation";
 import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
 
 interface TopbarProps {
   activeView: ViewId;
-  isEspOnline: boolean;
+  isEspOnline?: boolean;
   lastUpdatedText: string;
   isRefreshing: boolean;
   onRefresh: () => void;
@@ -14,7 +14,6 @@ interface TopbarProps {
 
 export const Topbar: React.FC<TopbarProps> = ({
   activeView,
-  isEspOnline,
   lastUpdatedText,
   isRefreshing,
   onRefresh,
@@ -36,7 +35,7 @@ export const Topbar: React.FC<TopbarProps> = ({
       case "device":
         return {
           title: "Device Management & Hardware Diagnostics",
-          subtitle: "ESP32 controller metrics, sensor health checks, and actuator overrides",
+          subtitle: "Hardware diagnostics, sensor health checks, and actuator overrides",
         };
       case "analytics":
         return {
@@ -91,28 +90,10 @@ export const Topbar: React.FC<TopbarProps> = ({
           )}
         </button>
 
-        {/* Sync Status Pill */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-aura-surface-subtle border border-aura-border text-xs">
-          <div className="flex items-center gap-1.5">
-            <Radio
-              className={cn(
-                "w-3 h-3",
-                isEspOnline ? "text-aura-primary animate-pulse" : "text-red-500"
-              )}
-            />
-            <span
-              className={cn(
-                "font-medium",
-                isEspOnline ? "text-aura-text-primary" : "text-red-500"
-              )}
-            >
-              {isEspOnline ? "ESP32 Sync" : "ESP32 Disconnected"}
-            </span>
-          </div>
-          <span className="text-aura-text-secondary/50">|</span>
-          <span className="text-aura-text-secondary font-mono text-[11px]">
-            {lastUpdatedText}
-          </span>
+        {/* Telemetry Sync Timestamp */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-aura-surface-subtle border border-aura-border text-xs text-aura-text-secondary font-mono">
+          <span className="w-1.5 h-1.5 rounded-full bg-aura-primary" />
+          <span>Synced: {lastUpdatedText}</span>
         </div>
 
         {/* Manual Refresh Button */}
