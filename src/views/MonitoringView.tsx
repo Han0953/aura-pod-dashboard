@@ -25,6 +25,19 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
 
   const isOffline = !deviceStatus.online;
 
+  // Compute dynamic stats from real telemetry data
+  const tempValues = telemetryHistory
+    .map((p) => p.temperature)
+    .filter((t): t is number => typeof t === "number" && t > 0);
+  const minTemp = tempValues.length > 0 ? Math.min(...tempValues).toFixed(1) : "--";
+  const maxTemp = tempValues.length > 0 ? Math.max(...tempValues).toFixed(1) : "--";
+
+  const gasValues = telemetryHistory
+    .map((p) => p.gasIndex)
+    .filter((g): g is number => typeof g === "number");
+  const minGas = gasValues.length > 0 ? Math.min(...gasValues) : "--";
+  const maxGas = gasValues.length > 0 ? Math.max(...gasValues) : "--";
+
   return (
     <div className="space-y-6 pb-12">
       {/* Section 1: Comparative Detailed Sensor Clusters (2 Cards) */}
@@ -63,7 +76,7 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
               </div>
               <div className="flex items-center gap-1 text-xs text-aura-primary font-mono">
                 <TrendingUp className="w-3.5 h-3.5" />
-                <span>+0.1°C / hr</span>
+                <span>Live Stream</span>
               </div>
             </div>
 
@@ -72,18 +85,18 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
           <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-aura-border text-xs">
             <div className="flex flex-col">
               <span className="text-[10px] font-mono text-aura-text-secondary">
-                Min / Max (Today)
+                Min / Max (Sesi Rill)
               </span>
               <span className="font-mono font-bold text-aura-text-primary mt-0.5">
-                23.8° / 25.1°
+                {minTemp}° / {maxTemp}°
               </span>
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-mono text-aura-text-secondary">
-                Std. Dev
+                Titik Rekaman
               </span>
               <span className="font-mono font-bold text-aura-primary mt-0.5">
-                ±0.24 °C
+                {tempValues.length} Data Pts
               </span>
             </div>
           </div>
@@ -131,18 +144,18 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
           <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-aura-border text-xs">
             <div className="flex flex-col">
               <span className="text-[10px] font-mono text-aura-text-secondary">
-                Pre-heat Calibration
+                Min / Max (Sesi Rill)
               </span>
               <span className="font-mono font-bold text-aura-text-primary mt-0.5">
-                Ready (100%)
+                {minGas} / {maxGas} AQI
               </span>
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-mono text-aura-text-secondary">
-                Relative Baseline
+                Titik Rekaman
               </span>
               <span className="font-mono font-bold text-aura-amber mt-0.5">
-                138 AQI
+                {gasValues.length} Data Pts
               </span>
             </div>
           </div>
@@ -198,28 +211,36 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
               </tr>
             </thead>
             <tbody className="divide-y divide-aura-border/60 font-mono">
-              {telemetryHistory.slice(-8).reverse().map((point, index) => (
-                <tr
-                  key={point.timestamp}
-                  className="hover:bg-aura-surface-subtle transition-colors"
-                >
-                  <td className="py-3 text-aura-text-secondary">
-                    {point.timeLabel} {index === 0 && <span className="text-aura-primary font-bold">(Latest)</span>}
-                  </td>
-                  <td className="py-3 text-aura-text-primary font-bold tabular-nums">
-                    {point.temperature} °C
-                  </td>
-                  <td className="py-3 text-aura-amber font-bold tabular-nums">
-                    {point.gasIndex} AQI
-                  </td>
-                  <td className="py-3">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-aura-surface-active text-aura-primary text-[10px] border border-aura-primary/30">
-                      <span className="w-1.5 h-1.5 rounded-full bg-aura-primary" />
-                      Nominal
-                    </span>
+              {telemetryHistory.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-aura-text-secondary text-xs">
+                    Belum ada riwayat telemetri. Data akan otomatis tercatat saat ESP32 aktif mengirim data ke Blynk.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                telemetryHistory.slice(-8).reverse().map((point, index) => (
+                  <tr
+                    key={point.timestamp}
+                    className="hover:bg-aura-surface-subtle transition-colors"
+                  >
+                    <td className="py-3 text-aura-text-secondary">
+                      {point.timeLabel} {index === 0 && <span className="text-aura-primary font-bold">(Latest)</span>}
+                    </td>
+                    <td className="py-3 text-aura-text-primary font-bold tabular-nums">
+                      {point.temperature} °C
+                    </td>
+                    <td className="py-3 text-aura-amber font-bold tabular-nums">
+                      {point.gasIndex} AQI
+                    </td>
+                    <td className="py-3">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-aura-surface-active text-aura-primary text-[10px] border border-aura-primary/30">
+                        <span className="w-1.5 h-1.5 rounded-full bg-aura-primary" />
+                        Nominal
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

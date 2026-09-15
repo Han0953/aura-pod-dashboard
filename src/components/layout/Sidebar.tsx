@@ -6,8 +6,7 @@ import {
   BarChart3,
   Settings,
   Radio,
-  Wifi,
-  WifiOff,
+  RefreshCw,
 } from "lucide-react";
 import { ViewId } from "@/types/navigation";
 import { NAV_ITEMS, APP_CONFIG } from "@/lib/constants";
@@ -17,14 +16,16 @@ interface SidebarProps {
   activeView: ViewId;
   onViewChange: (view: ViewId) => void;
   isEspOnline: boolean;
-  onToggleOnline: () => void;
+  onRefresh: () => void;
+  isRefreshing?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeView,
   onViewChange,
   isEspOnline,
-  onToggleOnline,
+  onRefresh,
+  isRefreshing = false,
 }) => {
 
   const getNavIcon = (id: ViewId) => {
@@ -45,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside className="w-64 h-screen bg-aura-surface border-r border-aura-border flex flex-col justify-between shrink-0 select-none z-30 transition-colors duration-200">
       {/* Brand Header */}
-      <div className="p-5 border-b border-aura-border">
+      <div className="p-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-aura-surface-active border border-aura-primary/30 flex items-center justify-center p-1.5 shadow-glow">
             <img
@@ -121,9 +122,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Hardware Connection & Status Footer */}
-      <div className="p-4 border-t border-aura-border space-y-3 bg-aura-surface-subtle/50 transition-colors duration-200">
+      <div className="p-4 space-y-3 bg-aura-surface transition-colors duration-200">
         {/* ESP32 Hardware Status Card */}
-        <div className="p-3 rounded-xl bg-aura-surface border border-aura-border space-y-2">
+        <div className="p-3 rounded-xl bg-aura-surface-subtle/50 border border-aura-border/60 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Radio className="w-3.5 h-3.5 text-aura-primary" />
@@ -154,23 +155,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="font-mono text-[10px] text-aura-primary">Ready</span>
           </div>
 
-          {/* Quick Simulation Trigger for testing offline handling */}
+          {/* Real Sync Trigger with Blynk Cloud */}
           <button
-            onClick={onToggleOnline}
-            className="w-full mt-1.5 py-1 px-2 rounded-md bg-aura-surface-subtle hover:bg-aura-border/40 text-[10px] text-aura-text-secondary hover:text-aura-text-primary flex items-center justify-center gap-1.5 transition-colors border border-aura-border cursor-pointer"
-            title="Klik untuk menguji simulasi kondisi offline"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="w-full mt-1.5 py-1 px-2 rounded-md bg-aura-surface-subtle hover:bg-aura-border/40 text-[10px] text-aura-text-secondary hover:text-aura-text-primary flex items-center justify-center gap-1.5 transition-colors border border-aura-border cursor-pointer disabled:opacity-50"
+            title="Sinkronkan status telemetri perangkat dengan Blynk Cloud"
           >
-            {isEspOnline ? (
-              <>
-                <WifiOff className="w-3 h-3 text-red-500" />
-                <span>Simulasi Offline</span>
-              </>
-            ) : (
-              <>
-                <Wifi className="w-3 h-3 text-aura-primary" />
-                <span>Simulasi Reconnect</span>
-              </>
-            )}
+            <RefreshCw className={cn("w-3 h-3 text-aura-primary", isRefreshing && "animate-spin")} />
+            <span>{isRefreshing ? "Menyinkronkan..." : "Sinkronkan Blynk"}</span>
           </button>
         </div>
 

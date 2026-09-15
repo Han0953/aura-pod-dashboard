@@ -31,7 +31,8 @@ function DashboardContent() {
         activeView={activeView}
         onViewChange={setActiveView}
         isEspOnline={dashboard.deviceStatus.online}
-        onToggleOnline={dashboard.toggleOnline}
+        onRefresh={dashboard.refreshData}
+        isRefreshing={dashboard.isRefreshing}
       />
 
       {/* Main Content Area */}

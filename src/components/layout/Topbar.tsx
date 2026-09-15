@@ -1,7 +1,6 @@
 import React from "react";
 import { RefreshCw, Radio, Bell, Sun, Moon } from "lucide-react";
 import { ViewId } from "@/types/navigation";
-import { DemoWatermark } from "@/components/common/DemoWatermark";
 import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
 
@@ -55,7 +54,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   const { title, subtitle } = getHeaderInfo();
 
   return (
-    <header className="h-18 px-8 border-b border-aura-border bg-aura-surface/95 backdrop-blur-md flex items-center justify-between sticky top-0 z-20 transition-colors duration-200">
+    <header className="h-18 px-8 bg-aura-surface/75 backdrop-blur-xl flex items-center justify-between sticky top-0 z-20 transition-colors duration-200">
       {/* Left: View Title & Subtitle */}
       <div className="flex flex-col py-3">
         <h1 className="font-heading text-lg font-bold text-aura-text-primary tracking-tight flex items-center gap-2">
@@ -64,7 +63,7 @@ export const Topbar: React.FC<TopbarProps> = ({
         <p className="text-xs text-aura-text-secondary truncate">{subtitle}</p>
       </div>
 
-      {/* Right: Actions, Status & Demo indicators */}
+      {/* Right: Actions and Status indicators */}
       <div className="flex items-center gap-3">
         {/* SINGLE Theme Toggle Button as explicitly requested */}
         <button
@@ -91,9 +90,6 @@ export const Topbar: React.FC<TopbarProps> = ({
             </>
           )}
         </button>
-
-        {/* Demo Mode Badge */}
-        <DemoWatermark className="hidden xl:flex" />
 
         {/* Sync Status Pill */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-aura-surface-subtle border border-aura-border text-xs">

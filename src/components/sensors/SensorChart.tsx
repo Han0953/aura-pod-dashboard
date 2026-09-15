@@ -11,6 +11,7 @@ import {
 import { MultiSeriesSensorPoint } from "@/types/sensor";
 import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
+import { Activity } from "lucide-react";
 
 interface SensorChartProps {
   data: MultiSeriesSensorPoint[];
@@ -146,49 +147,61 @@ export const SensorChart: React.FC<SensorChartProps> = ({
 
       {/* Main Recharts Area */}
       <div className="w-full h-72">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={data}
-            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={tempColor} stopOpacity={0.25} />
-                <stop offset="95%" stopColor={tempColor} stopOpacity={0.0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              stroke={gridColor}
-              strokeDasharray="3 3"
-              vertical={false}
-            />
-            <XAxis
-              dataKey="timeLabel"
-              stroke={axisTextColor}
-              fontSize={11}
-              tickLine={false}
-              axisLine={{ stroke: gridColor }}
-            />
-            <YAxis
-              stroke={axisTextColor}
-              fontSize={11}
-              tickLine={false}
-              axisLine={{ stroke: gridColor }}
-              domain={["dataMin - 2", "dataMax + 2"]}
-            />
-            <Tooltip content={<CustomTooltip isDark={isDark} />} />
+        {data.length === 0 ? (
+          <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 border border-dashed border-aura-border rounded-xl bg-aura-surface-subtle/30">
+            <Activity className="w-8 h-8 text-aura-primary/70 animate-pulse mb-2" />
+            <p className="font-heading font-semibold text-aura-text-primary text-sm">
+              Menunggu Data Telemetri Rill
+            </p>
+            <p className="text-xs text-aura-text-secondary mt-1 max-w-sm">
+              Titik telemetri sensor DS18B20 & MQ-135 dari ESP32 akan langsung direkam dan digambar di sini secara real-time.
+            </p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={data.length === 1 ? [data[0], data[0]] : data}
+              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={tempColor} stopOpacity={0.25} />
+                  <stop offset="95%" stopColor={tempColor} stopOpacity={0.0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                stroke={gridColor}
+                strokeDasharray="3 3"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="timeLabel"
+                stroke={axisTextColor}
+                fontSize={11}
+                tickLine={false}
+                axisLine={{ stroke: gridColor }}
+              />
+              <YAxis
+                stroke={axisTextColor}
+                fontSize={11}
+                tickLine={false}
+                axisLine={{ stroke: gridColor }}
+                domain={["dataMin - 2", "dataMax + 2"]}
+              />
+              <Tooltip content={<CustomTooltip isDark={isDark} />} />
 
-            {/* Temperature Line & Area */}
-            <Area
-              type="monotone"
-              dataKey="temperature"
-              stroke={tempColor}
-              strokeWidth={2.5}
-              fillOpacity={1}
-              fill="url(#colorTemp)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+              {/* Temperature Line & Area */}
+              <Area
+                type="monotone"
+                dataKey="temperature"
+                stroke={tempColor}
+                strokeWidth={2.5}
+                fillOpacity={1}
+                fill="url(#colorTemp)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* Interactive Legend Matrix with Live Values */}

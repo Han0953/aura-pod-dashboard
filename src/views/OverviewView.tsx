@@ -96,7 +96,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         />
       </section>
 
-      {/* ROW 2: Sensor Trends Chart & Hardware Nodes (8 / 4 Grid) */}
+      {/* ROW 2: Sensor Trends Chart & Quick Actuator Controls (8 / 4 Grid) */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8">
           <SensorChart
@@ -109,20 +109,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
 
         <div className="lg:col-span-4 flex flex-col">
-          <DeviceStatusCard
-            deviceStatus={deviceStatus}
-            onNavigateToDevice={onNavigateToDevice}
-          />
-        </div>
-      </section>
-
-      {/* ROW 3: MRV Biological Impact & Quick Actuator Controls */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8">
-          <CarbonMetricCard carbon={carbonMetric} biomass={biomassMetric} />
-        </div>
-
-        <div className="lg:col-span-4 flex flex-col">
           <ActuatorControl
             ledOn={deviceStatus.led}
             aeratorOn={deviceStatus.aerator}
@@ -131,6 +117,20 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             mode={deviceStatus.mode}
             onToggleMode={toggleMode}
             disabled={isOffline}
+          />
+        </div>
+      </section>
+
+      {/* ROW 3: MRV Biological Impact & Device Status (8 / 4 Grid) */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8">
+          <CarbonMetricCard carbon={carbonMetric} biomass={biomassMetric} />
+        </div>
+
+        <div className="lg:col-span-4 flex flex-col">
+          <DeviceStatusCard
+            deviceStatus={deviceStatus}
+            onNavigateToDevice={onNavigateToDevice}
           />
         </div>
       </section>

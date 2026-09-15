@@ -3,8 +3,8 @@ import { DeviceStatus, HardwareDiagnostic } from "@/types/device";
 import { CarbonMetric, BiomassMetric } from "@/types/mrv";
 
 export const INITIAL_SENSOR_DATA: SensorData = {
-  temperature: 24.3,
-  gasIndex: 142,
+  temperature: 0,
+  gasIndex: null,
   timestamp: new Date().toISOString(),
 };
 
