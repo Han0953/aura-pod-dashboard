@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useLayoutEffect, useRef } from "react";
+import gsap from "gsap";
 import {
   Cpu,
   RefreshCw,
@@ -13,6 +14,8 @@ interface DeviceViewProps {
 }
 
 export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const {
     deviceStatus,
     diagnostics,
@@ -23,10 +26,32 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
     isRefreshing,
   } = dashboard;
 
+  // GSAP Staggered Entrance Animation for Device cards (scoped & clean)
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      // Immediately hide elements before first paint
+      gsap.set(".device-stagger-card", { opacity: 0, y: 32, scale: 0.98 });
+
+      // Stagger in cards 1 by 1
+      gsap.to(".device-stagger-card", {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.55,
+        stagger: 0.08,
+        delay: 0.05,
+        ease: "power2.out",
+        clearProps: "transform,opacity",
+      });
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="space-y-6 pb-12">
+    <div ref={containerRef} className="space-y-6 pb-12">
       {/* Top Banner: Device Overview & Status Action */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-aura-surface to-aura-surface-active/30 border border-aura-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+      <div className="device-stagger-card p-6 rounded-2xl bg-gradient-to-r from-aura-surface to-aura-surface-active/30 border border-aura-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-aura-surface-active border border-aura-primary/40 flex items-center justify-center text-aura-primary shadow-glow">
             <Cpu className="w-6 h-6" />
@@ -60,7 +85,7 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
 
       {/* Row 1: Actuator Direct Overrides & Hardware Inventory */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-6">
+        <div className="device-stagger-card lg:col-span-6">
           <ActuatorControl
             ledOn={deviceStatus.led}
             aeratorOn={deviceStatus.aerator}
@@ -72,7 +97,7 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
           />
         </div>
 
-        <div className="lg:col-span-6">
+        <div className="device-stagger-card lg:col-span-6">
           <DeviceStatusCard
             deviceStatus={deviceStatus}
           />
@@ -80,10 +105,12 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
       </div>
 
       {/* Row 2: Comprehensive Diagnostics & Pin Mapping Table */}
-      <HardwareDiagnostics
-        diagnostics={diagnostics}
-        isOnline={deviceStatus.online}
-      />
+      <div className="device-stagger-card">
+        <HardwareDiagnostics
+          diagnostics={diagnostics}
+          isOnline={deviceStatus.online}
+        />
+      </div>
     </div>
   );
 };

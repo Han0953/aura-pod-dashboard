@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import gsap from "gsap";
 import {
   Bell,
   Sun,
@@ -34,22 +35,97 @@ export const Topbar: React.FC<TopbarProps> = ({
 }) => {
   const { theme, toggleTheme } = useTheme();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isNotifMounted, setIsNotifMounted] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const bellIconRef = useRef<SVGSVGElement>(null);
+  const isAnimatingRef = useRef(false);
+
+  const openPopover = () => {
+    if (isNotifOpen || isAnimatingRef.current) return;
+    setIsNotifMounted(true);
+    setIsNotifOpen(true);
+
+    if (bellIconRef.current) {
+      gsap.fromTo(
+        bellIconRef.current,
+        { rotation: -22 },
+        { rotation: 0, duration: 0.45, ease: "elastic.out(1.2, 0.35)" }
+      );
+    }
+  };
+
+  const closePopover = () => {
+    if (!isNotifOpen || isAnimatingRef.current) return;
+    setIsNotifOpen(false);
+
+    if (popoverRef.current) {
+      isAnimatingRef.current = true;
+      gsap.to(popoverRef.current, {
+        scale: 0.15,
+        opacity: 0,
+        y: -10,
+        transformOrigin: "top right",
+        duration: 0.22,
+        ease: "power2.in",
+        onComplete: () => {
+          setIsNotifMounted(false);
+          isAnimatingRef.current = false;
+        },
+      });
+    } else {
+      setIsNotifMounted(false);
+    }
+  };
+
+  const togglePopover = () => {
+    if (isNotifOpen) {
+      closePopover();
+    } else {
+      openPopover();
+    }
+  };
+
+  // Entrance animation when popover mounts in DOM
+  useEffect(() => {
+    if (isNotifMounted && popoverRef.current) {
+      isAnimatingRef.current = true;
+      gsap.fromTo(
+        popoverRef.current,
+        {
+          scale: 0.15,
+          opacity: 0,
+          y: -10,
+          transformOrigin: "top right",
+        },
+        {
+          scale: 1,
+          opacity: 1,
+          y: 0,
+          duration: 0.32,
+          ease: "back.out(1.25)",
+          onComplete: () => {
+            isAnimatingRef.current = false;
+          },
+        }
+      );
+    }
+  }, [isNotifMounted]);
 
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
-        setIsNotifOpen(false);
+        closePopover();
       }
     }
-    if (isNotifOpen) {
+    if (isNotifMounted) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isNotifOpen]);
+  }, [isNotifMounted, isNotifOpen]);
 
   const getHeaderInfo = () => {
     switch (activeView) {
@@ -149,17 +225,17 @@ export const Topbar: React.FC<TopbarProps> = ({
         <div className="relative" ref={notifRef}>
           <button
             type="button"
-            onClick={() => setIsNotifOpen((prev) => !prev)}
+            onClick={togglePopover}
             aria-label="Buka Notifikasi"
             title="Notifikasi & Peringatan Sistem"
             className={cn(
-              "relative p-2 rounded-lg border transition-all duration-200 cursor-pointer active:scale-95",
+              "relative p-2 rounded-lg border transition-colors duration-150 cursor-pointer",
               isNotifOpen
                 ? "bg-aura-surface-active border-aura-primary/50 text-aura-primary shadow-glow"
                 : "bg-aura-surface-subtle border-aura-border text-aura-text-secondary hover:text-aura-text-primary hover:border-aura-primary/30"
             )}
           >
-            <Bell className="w-4 h-4" />
+            <Bell ref={bellIconRef} className="w-4 h-4 will-change-transform" />
             {unreadNotificationCount > 0 && (
               <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-[9px] font-bold font-mono text-white flex items-center justify-center shadow-md animate-pulse">
                 {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
@@ -167,9 +243,12 @@ export const Topbar: React.FC<TopbarProps> = ({
             )}
           </button>
 
-          {/* Floating Dropdown Card */}
-          {isNotifOpen && (
-            <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl bg-aura-surface/95 backdrop-blur-xl border border-aura-border shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+          {/* Floating Dropdown Card with Scale to/from Icon Animation */}
+          {isNotifMounted && (
+            <div
+              ref={popoverRef}
+              className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl bg-aura-surface/95 backdrop-blur-xl border border-aura-border shadow-2xl p-4 z-50 will-change-transform origin-top-right"
+            >
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-aura-border/60">
                 <div className="flex items-center gap-2">
