@@ -14,10 +14,29 @@ import { cn } from "@/lib/utils";
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [isEntrance, setIsEntrance] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  // Synchronously detect ?entrance=1 from URL search params on mount
+  const isEntrance = useRef(searchParams.get("entrance") === "1").current;
+  // Read saved collapsed state from localStorage on initial render
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("aura_sidebar_collapsed");
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
   const [activeView, setActiveView] = useState<ViewId>("overview");
   const isFirstMount = useRef(true);
+
+  const handleToggleSidebar = useCallback(() => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("aura_sidebar_collapsed", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, []);
 
   const dashboard = useDashboardData();
   const { theme } = useTheme();
@@ -37,22 +56,14 @@ export const DashboardPage: React.FC = () => {
     );
   }, [isSidebarCollapsed]);
 
-  // Detect ?entrance=1 from Rolling Door transition
+  // Clean ?entrance URL parameter from browser history on mount without re-triggering entrance animations
   useEffect(() => {
     if (searchParams.get("entrance") === "1") {
-      setIsEntrance(true);
-
-      // Silently clean URL parameter without stripping CSS/repainting
       try {
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (e) {}
-
-      const timer = setTimeout(() => {
-        setIsEntrance(false);
-      }, 1800);
-      return () => clearTimeout(timer);
     }
-  }, [searchParams]);
+  }, []);
 
   const handleLogout = useCallback(() => {
     navigate("/login");
@@ -79,7 +90,7 @@ export const DashboardPage: React.FC = () => {
         isRefreshing={dashboard.isRefreshing}
         isEntrance={isEntrance}
         isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
+        onToggleCollapse={handleToggleSidebar}
         onLogout={handleLogout}
       />
 

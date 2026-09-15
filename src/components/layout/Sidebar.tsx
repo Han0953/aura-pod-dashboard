@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import {
   LayoutDashboard,
@@ -38,17 +38,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed: controlledCollapsed,
   onToggleCollapse,
 }) => {
-  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const [internalCollapsed, setInternalCollapsed] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("aura_sidebar_collapsed");
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
   const sidebarRef = useRef<HTMLElement>(null);
   const toggleIconRef = useRef<SVGSVGElement>(null);
   const isFirstMount = useRef(true);
+  const hasAnimatedEntrance = useRef(false);
 
   const toggleCollapse = () => {
     if (onToggleCollapse) {
       onToggleCollapse();
     } else {
-      setInternalCollapsed((prev) => !prev);
+      setInternalCollapsed((prev) => {
+        const next = !prev;
+        try {
+          localStorage.setItem("aura_sidebar_collapsed", JSON.stringify(next));
+        } catch {}
+        return next;
+      });
     }
   };
 
@@ -56,6 +70,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
+      // Set initial chevron rotation without transition to match restored collapsed state
+      if (toggleIconRef.current) {
+        gsap.set(toggleIconRef.current, {
+          rotation: isCollapsed ? 180 : 0,
+        });
+      }
       return;
     }
 
@@ -130,33 +150,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [isCollapsed]);
 
-  // GSAP Grand Entrance Wave (runs only once on initial entrance)
-  useEffect(() => {
-    if (!isEntrance || !sidebarRef.current) return;
+  // GSAP Grand Entrance Wave (runs strictly once before first paint)
+  useLayoutEffect(() => {
+    if (!isEntrance || !sidebarRef.current || hasAnimatedEntrance.current) return;
+    hasAnimatedEntrance.current = true;
 
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        sidebarRef.current,
-        { xPercent: -100, opacity: 0 },
-        { xPercent: 0, opacity: 1, duration: 0.6, ease: "power2.out" }
-      );
+    gsap.fromTo(
+      sidebarRef.current,
+      { xPercent: -100, opacity: 0 },
+      {
+        xPercent: 0,
+        opacity: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        clearProps: "transform,opacity",
+      }
+    );
 
-      gsap.fromTo(
-        ".sidebar-item-wave",
-        { opacity: 0, x: -16 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.35,
-          stagger: 0.05,
-          delay: 0.2,
-          ease: "power2.out",
-        }
-      );
-    }, sidebarRef);
-
-    return () => ctx.revert();
-  }, [isEntrance]);
+    gsap.fromTo(
+      ".sidebar-item-wave",
+      { opacity: 0, x: -16 },
+      {
+        opacity: 1,
+        x: 0,
+        duration: 0.35,
+        stagger: 0.05,
+        delay: 0.2,
+        ease: "power2.out",
+        clearProps: "transform,opacity",
+      }
+    );
+  }, []);
 
   const getNavIcon = (id: ViewId) => {
     switch (id) {

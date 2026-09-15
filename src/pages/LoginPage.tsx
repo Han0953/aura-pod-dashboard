@@ -210,9 +210,10 @@ export const LoginPage: React.FC = () => {
   return (
     <div
       ref={containerRef}
+      data-theme={theme}
       className={cn(
-        "fixed inset-0 z-50 flex flex-col md:flex-row overflow-hidden bg-black select-none",
-        theme === "dark" ? "dark" : "light"
+        "fixed inset-0 z-50 flex flex-col md:flex-row overflow-hidden select-none transition-colors duration-200",
+        theme === "dark" ? "bg-black dark" : "bg-[#F8FAFC] light"
       )}
     >
       {/* ── LEFT DOOR PANEL: AURA Pod Visual Identity & Interactive Bio-Canvas ── */}

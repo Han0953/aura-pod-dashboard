@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { Thermometer, Wind, Sun } from "lucide-react";
 import { SensorCard } from "@/components/sensors/SensorCard";
@@ -21,6 +21,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   isEntrance = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const hasAnimatedEntrance = useRef(false);
 
   const {
     sensorData,
@@ -37,28 +38,26 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
 
   const isOffline = !deviceStatus.online;
 
-  // GSAP Dashboard Entrance Animation for each card item
-  useEffect(() => {
-    if (!containerRef.current) return;
+  // GSAP Dashboard Entrance Animation for each card item (runs strictly once before first paint)
+  useLayoutEffect(() => {
+    if (!containerRef.current || hasAnimatedEntrance.current) return;
+    hasAnimatedEntrance.current = true;
 
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".dashboard-stagger-card",
-        { opacity: 0, y: 32, scale: 0.98 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.55,
-          stagger: 0.07,
-          delay: isEntrance ? 0.35 : 0.05,
-          ease: "power2.out",
-        }
-      );
-    }, containerRef);
+    // Immediately hide the cards before the browser paints the first frame
+    gsap.set(".dashboard-stagger-card", { opacity: 0, y: 32, scale: 0.98 });
 
-    return () => ctx.revert();
-  }, [isEntrance]);
+    // Animate cards into place smoothly without any pre-flash
+    gsap.to(".dashboard-stagger-card", {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 0.55,
+      stagger: 0.07,
+      delay: isEntrance ? 0.25 : 0.05,
+      ease: "power2.out",
+      clearProps: "transform,opacity",
+    });
+  }, []);
 
   // Temperature status calculation
   const getTempStatus = () => {
