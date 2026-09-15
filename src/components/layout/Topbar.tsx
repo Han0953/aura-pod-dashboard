@@ -1,24 +1,55 @@
-import React from "react";
-import { RefreshCw, Bell, Sun, Moon } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Bell,
+  Sun,
+  Moon,
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle2,
+  Info,
+  Trash2,
+  CheckCheck,
+} from "lucide-react";
 import { ViewId } from "@/types/navigation";
+import { SystemNotification } from "@/types/notification";
 import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
 
 interface TopbarProps {
   activeView: ViewId;
-  isEspOnline?: boolean;
   lastUpdatedText: string;
-  isRefreshing: boolean;
-  onRefresh: () => void;
+  notifications?: SystemNotification[];
+  unreadNotificationCount?: number;
+  onMarkAllAsRead?: () => void;
+  onClearAllNotifications?: () => void;
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
   activeView,
   lastUpdatedText,
-  isRefreshing,
-  onRefresh,
+  notifications = [],
+  unreadNotificationCount = 0,
+  onMarkAllAsRead,
+  onClearAllNotifications,
 }) => {
   const { theme, toggleTheme } = useTheme();
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setIsNotifOpen(false);
+      }
+    }
+    if (isNotifOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isNotifOpen]);
 
   const getHeaderInfo = () => {
     switch (activeView) {
@@ -52,6 +83,30 @@ export const Topbar: React.FC<TopbarProps> = ({
 
   const { title, subtitle } = getHeaderInfo();
 
+  const formatNotifTime = (timestamp: string) => {
+    const diffSec = Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000);
+    if (isNaN(diffSec) || diffSec < 60) return "Baru saja";
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m lalu`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour}j lalu`;
+    return new Date(timestamp).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+  };
+
+  const getSeverityIcon = (severity: SystemNotification["severity"]) => {
+    switch (severity) {
+      case "error":
+        return <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />;
+      case "warning":
+        return <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />;
+      case "success":
+        return <CheckCircle2 className="w-3.5 h-3.5 text-aura-primary shrink-0" />;
+      case "info":
+      default:
+        return <Info className="w-3.5 h-3.5 text-blue-400 shrink-0" />;
+    }
+  };
+
   return (
     <header className="h-18 px-8 bg-aura-surface/75 backdrop-blur-xl flex items-center justify-between sticky top-0 z-20 transition-colors duration-200">
       {/* Left: View Title & Subtitle */}
@@ -64,29 +119,23 @@ export const Topbar: React.FC<TopbarProps> = ({
 
       {/* Right: Actions and Status indicators */}
       <div className="flex items-center gap-3">
-        {/* SINGLE Theme Toggle Button as explicitly requested */}
+        {/* Theme Toggle Icon Button */}
         <button
           type="button"
           onClick={toggleTheme}
           aria-label={theme === "dark" ? "Ganti ke Light Mode" : "Ganti ke Dark Mode"}
-          title={theme === "dark" ? "Ganti ke Light Mode (Putih)" : "Ganti ke Dark Mode (Gelap Hijau)"}
+          title={theme === "dark" ? "Ganti ke Light Mode" : "Ganti ke Dark Mode"}
           className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium font-mono transition-all duration-200 active:scale-95 shadow-sm cursor-pointer",
+            "p-2 rounded-lg border transition-all duration-200 active:scale-95 shadow-sm cursor-pointer",
             theme === "dark"
-              ? "bg-aura-surface-active border-aura-primary/40 text-aura-primary hover:bg-aura-border/50 shadow-glow"
-              : "bg-white border-aura-border text-aura-text-primary hover:bg-aura-surface-subtle shadow-sm"
+              ? "bg-aura-surface-subtle border-aura-border text-amber-400 hover:bg-aura-border/40 hover:border-amber-400/40"
+              : "bg-white border-aura-border text-emerald-700 hover:bg-aura-surface-subtle"
           )}
         >
           {theme === "dark" ? (
-            <>
-              <Sun className="w-4 h-4 text-amber-400" />
-              <span className="font-semibold">Light Mode</span>
-            </>
+            <Sun className="w-4 h-4 text-amber-400" />
           ) : (
-            <>
-              <Moon className="w-4 h-4 text-emerald-700" />
-              <span className="font-semibold">Dark Mode</span>
-            </>
+            <Moon className="w-4 h-4 text-emerald-700" />
           )}
         </button>
 
@@ -96,23 +145,120 @@ export const Topbar: React.FC<TopbarProps> = ({
           <span>Synced: {lastUpdatedText}</span>
         </div>
 
-        {/* Manual Refresh Button */}
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          className="p-2 rounded-lg bg-aura-surface-subtle border border-aura-border text-aura-text-secondary hover:text-aura-text-primary hover:border-aura-primary/40 active:scale-95 transition-all cursor-pointer"
-          title="Sinkronisasi manual"
-        >
-          <RefreshCw
-            className={cn("w-4 h-4", isRefreshing && "animate-spin text-aura-primary")}
-          />
-        </button>
+        {/* Interactive Notifications Popover */}
+        <div className="relative" ref={notifRef}>
+          <button
+            type="button"
+            onClick={() => setIsNotifOpen((prev) => !prev)}
+            aria-label="Buka Notifikasi"
+            title="Notifikasi & Peringatan Sistem"
+            className={cn(
+              "relative p-2 rounded-lg border transition-all duration-200 cursor-pointer active:scale-95",
+              isNotifOpen
+                ? "bg-aura-surface-active border-aura-primary/50 text-aura-primary shadow-glow"
+                : "bg-aura-surface-subtle border-aura-border text-aura-text-secondary hover:text-aura-text-primary hover:border-aura-primary/30"
+            )}
+          >
+            <Bell className="w-4 h-4" />
+            {unreadNotificationCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-[9px] font-bold font-mono text-white flex items-center justify-center shadow-md animate-pulse">
+                {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+              </span>
+            )}
+          </button>
 
-        {/* Notifications Icon */}
-        <div className="relative p-2 rounded-lg bg-aura-surface-subtle border border-aura-border text-aura-text-secondary hover:text-aura-text-primary transition-colors cursor-pointer">
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-aura-primary" />
+          {/* Floating Dropdown Card */}
+          {isNotifOpen && (
+            <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl bg-aura-surface/95 backdrop-blur-xl border border-aura-border shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-aura-border/60">
+                <div className="flex items-center gap-2">
+                  <span className="font-heading font-bold text-sm text-aura-text-primary">
+                    Pemberitahuan Sistem
+                  </span>
+                  {unreadNotificationCount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-red-500/15 text-red-500 border border-red-500/30">
+                      {unreadNotificationCount} Baru
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  {unreadNotificationCount > 0 && onMarkAllAsRead && (
+                    <button
+                      type="button"
+                      onClick={onMarkAllAsRead}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-aura-text-secondary hover:text-aura-primary hover:bg-aura-surface-subtle transition-colors cursor-pointer"
+                      title="Tandai semua sudah dibaca"
+                    >
+                      <CheckCheck className="w-3 h-3" />
+                      <span>Dibaca</span>
+                    </button>
+                  )}
+                  {notifications.length > 0 && onClearAllNotifications && (
+                    <button
+                      type="button"
+                      onClick={onClearAllNotifications}
+                      className="p-1 rounded-md text-aura-text-secondary hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
+                      title="Bersihkan semua notifikasi"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Notification List */}
+              <div className="mt-3 max-h-80 overflow-y-auto space-y-2 pr-1">
+                {notifications.length === 0 ? (
+                  <div className="py-8 flex flex-col items-center justify-center text-center">
+                    <CheckCircle2 className="w-8 h-8 text-aura-primary/50 mb-2" />
+                    <p className="font-semibold text-xs text-aura-text-primary">
+                      Tidak Ada Notifikasi
+                    </p>
+                    <p className="text-[11px] text-aura-text-secondary mt-0.5">
+                      Seluruh parameter kultur dan hardware dalam kondisi normal.
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className={cn(
+                        "p-3 rounded-xl border text-xs transition-colors flex items-start gap-2.5",
+                        notif.read
+                          ? "bg-aura-surface-subtle/50 border-aura-border/60 text-aura-text-secondary"
+                          : "bg-aura-surface-active/30 border-aura-primary/30 text-aura-text-primary shadow-sm"
+                      )}
+                    >
+                      <div className="mt-0.5">{getSeverityIcon(notif.severity)}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={cn(
+                              "font-semibold text-xs truncate",
+                              notif.read ? "text-aura-text-primary/80" : "text-aura-text-primary"
+                            )}
+                          >
+                            {notif.title}
+                          </span>
+                          <span className="text-[10px] font-mono text-aura-text-secondary/70 shrink-0">
+                            {formatNotifTime(notif.timestamp)}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-aura-text-secondary mt-1 leading-relaxed">
+                          {notif.message}
+                        </p>
+                      </div>
+                      {!notif.read && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-aura-primary shrink-0 mt-1.5 shadow-glow" />
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>

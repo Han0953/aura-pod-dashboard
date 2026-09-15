@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { SensorData, MultiSeriesSensorPoint } from "@/types/sensor";
 import { DeviceStatus, HardwareDiagnostic } from "@/types/device";
 import { CarbonMetric, BiomassMetric } from "@/types/mrv";
+import { SystemNotification } from "@/types/notification";
 import {
   INITIAL_SENSOR_DATA,
   INITIAL_DEVICE_STATUS,
@@ -14,7 +15,9 @@ import { APP_CONFIG } from "@/lib/constants";
 import { blynkService } from "./blynkService";
 
 const STORAGE_KEY_HISTORY = "aura_pod_telemetry_history";
+const STORAGE_KEY_NOTIFS = "aura_pod_notifications";
 const MAX_HISTORY_POINTS = 100;
+const MAX_NOTIFS = 20;
 
 function loadStoredHistory(): MultiSeriesSensorPoint[] {
   try {
@@ -39,6 +42,36 @@ function saveStoredHistory(points: MultiSeriesSensorPoint[]): void {
   }
 }
 
+function loadStoredNotifications(): SystemNotification[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_NOTIFS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    console.warn("[DashboardService] Error reading notifications:", e);
+  }
+  return [
+    {
+      id: "init-welcome",
+      title: "Sistem Siap",
+      message: "AURA Pod Dashboard aktif dan terhubung ke Blynk Cloud API.",
+      severity: "info",
+      timestamp: new Date().toISOString(),
+      read: false,
+    },
+  ];
+}
+
+function saveStoredNotifications(notifs: SystemNotification[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY_NOTIFS, JSON.stringify(notifs.slice(0, MAX_NOTIFS)));
+  } catch (e) {
+    console.warn("[DashboardService] Error persisting notifications:", e);
+  }
+}
+
 export interface DashboardContextType {
   sensorData: SensorData;
   deviceStatus: DeviceStatus;
@@ -51,6 +84,10 @@ export interface DashboardContextType {
   lastUpdatedText: string;
   isRefreshing: boolean;
   isBlynkConfigured: boolean;
+  notifications: SystemNotification[];
+  unreadNotificationCount: number;
+  markAllNotificationsAsRead: () => void;
+  clearAllNotifications: () => void;
   toggleLed: () => void;
   toggleAerator: () => void;
   toggleMode: () => void;
@@ -73,6 +110,43 @@ export function useDashboardData(): DashboardContextType {
   const [lastUpdatedText, setLastUpdatedText] = useState<string>("Connecting to ESP32...");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const isBlynkConfigured = blynkService.isConfigured();
+
+  const [notifications, setNotifications] = useState<SystemNotification[]>(() => loadStoredNotifications());
+
+  const addNotification = useCallback((notif: Omit<SystemNotification, "id" | "timestamp" | "read">) => {
+    const newNotif: SystemNotification = {
+      ...notif,
+      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      timestamp: new Date().toISOString(),
+      read: false,
+    };
+    setNotifications((prev) => {
+      const recent = prev[0];
+      if (recent && recent.title === notif.title && Date.now() - new Date(recent.timestamp).getTime() < 60000) {
+        return prev;
+      }
+      const updated = [newNotif, ...prev].slice(0, MAX_NOTIFS);
+      saveStoredNotifications(updated);
+      return updated;
+    });
+  }, []);
+
+  const markAllNotificationsAsRead = useCallback(() => {
+    setNotifications((prev) => {
+      const updated = prev.map((n) => ({ ...n, read: true }));
+      saveStoredNotifications(updated);
+      return updated;
+    });
+  }, []);
+
+  const clearAllNotifications = useCallback(() => {
+    setNotifications([]);
+    saveStoredNotifications([]);
+  }, []);
+
+  const unreadNotificationCount = useMemo(() => {
+    return notifications.filter((n) => !n.read).length;
+  }, [notifications]);
 
   // If no stored history yet, update 0-point baseline whenever timeframe changes
   useEffect(() => {
@@ -111,11 +185,14 @@ export function useDashboardData(): DashboardContextType {
         if (isOnline) {
           setDeviceStatus((prev) => {
             const wasOffline = !prev.online;
-            // Default to IoT mode when reconnecting from offline
             const nextMode = wasOffline ? "iot" : (blynkData ? blynkData.mode : prev.mode);
 
-            if (wasOffline && blynkData && blynkData.mode !== "iot") {
-              // Ensure Blynk Cloud V4 is set to 1 (IoT mode)
+            if (wasOffline) {
+              addNotification({
+                title: "ESP32 Terhubung",
+                message: "Koneksi ke Blynk Cloud aktif. Mode IoT diaktifkan otomatis.",
+                severity: "success",
+              });
               blynkService.updatePin("v4", 1).catch(() => {});
             }
 
@@ -128,17 +205,48 @@ export function useDashboardData(): DashboardContextType {
             };
           });
         } else {
-          // ESP32 Disconnected / Nonaktif: Mati total (LED & Aerator OFF)
-          setDeviceStatus((prev) => ({
-            ...prev,
-            online: false,
-            led: false,     // Mati total
-            aerator: false, // Mati total
-            mode: "iot",    // Siap otomatis mode IoT saat connect kembali
-          }));
+          setDeviceStatus((prev) => {
+            if (prev.online) {
+              addNotification({
+                title: "ESP32 Terputus",
+                message: "Hardware offline. Seluruh aktuator dimatikan total untuk keamanan kultur.",
+                severity: "error",
+              });
+            }
+            return {
+              ...prev,
+              online: false,
+              led: false,
+              aerator: false,
+              mode: "iot",
+            };
+          });
         }
 
         if (blynkData && isOnline) {
+          // Check sensor telemetry thresholds
+          if (blynkData.temperature > 27.5) {
+            addNotification({
+              title: "Peringatan Suhu Tinggi",
+              message: `Suhu terdeteksi ${blynkData.temperature}°C (di atas ambang batas optimal 22-26°C).`,
+              severity: "warning",
+            });
+          } else if (blynkData.temperature < 20.0 && blynkData.temperature > 0) {
+            addNotification({
+              title: "Peringatan Suhu Rendah",
+              message: `Suhu terdeteksi ${blynkData.temperature}°C (di bawah ambang batas optimal 22-26°C).`,
+              severity: "warning",
+            });
+          }
+
+          if (blynkData.gasIndex !== null && blynkData.gasIndex > 220) {
+            addNotification({
+              title: "Indeks Gas Meningkat",
+              message: `MQ-135 mencatat ${blynkData.gasIndex} AQI. Dianjurkan menyalakan aerator.`,
+              severity: "warning",
+            });
+          }
+
           setSensorData({
             temperature: blynkData.temperature,
             gasIndex: blynkData.gasIndex,
@@ -243,6 +351,10 @@ export function useDashboardData(): DashboardContextType {
     lastUpdatedText,
     isRefreshing,
     isBlynkConfigured,
+    notifications,
+    unreadNotificationCount,
+    markAllNotificationsAsRead,
+    clearAllNotifications,
     toggleLed,
     toggleAerator,
     toggleMode,

@@ -40,10 +40,11 @@ function DashboardContent() {
         {/* Topbar Header with the single toggle button */}
         <Topbar
           activeView={activeView}
-          isEspOnline={dashboard.deviceStatus.online}
           lastUpdatedText={dashboard.lastUpdatedText}
-          isRefreshing={dashboard.isRefreshing}
-          onRefresh={dashboard.refreshData}
+          notifications={dashboard.notifications}
+          unreadNotificationCount={dashboard.unreadNotificationCount}
+          onMarkAllAsRead={dashboard.markAllNotificationsAsRead}
+          onClearAllNotifications={dashboard.clearAllNotifications}
         />
 
         {/* Scrollable View Canvas */}
