@@ -9,7 +9,6 @@ import {
   Radio,
   RefreshCw,
   ChevronLeft,
-  ChevronRight,
   LogOut,
 } from "lucide-react";
 import { ViewId } from "@/types/navigation";
@@ -42,6 +41,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
   const sidebarRef = useRef<HTMLElement>(null);
+  const toggleIconRef = useRef<SVGSVGElement>(null);
+  const isFirstMount = useRef(true);
 
   const toggleCollapse = () => {
     if (onToggleCollapse) {
@@ -50,6 +51,86 @@ export const Sidebar: React.FC<SidebarProps> = ({
       setInternalCollapsed((prev) => !prev);
     }
   };
+
+  // GSAP animation on collapse toggle (Silky fluid wave for ALL icons and nav items)
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+
+    // 1. Smoothly rotate chevron toggle button 180 degrees
+    if (toggleIconRef.current) {
+      gsap.to(toggleIconRef.current, {
+        rotation: isCollapsed ? 180 : 0,
+        duration: 0.38,
+        ease: "power2.inOut",
+      });
+    }
+
+    // 2. Liquid micro-float wave across ALL icons (Logo, Nav items, ESP32, Logout)
+    gsap.fromTo(
+      ".sidebar-nav-icon",
+      {
+        y: isCollapsed ? -4 : 4,
+        scale: 0.93,
+        opacity: 0.8,
+      },
+      {
+        y: 0,
+        scale: 1,
+        opacity: 1,
+        duration: 0.36,
+        stagger: {
+          each: 0.02,
+          from: isCollapsed ? "start" : "end",
+        },
+        ease: "power2.out",
+      }
+    );
+
+    // 3. GSAP animations for toggle buttons under Core Navigation
+    if (!isCollapsed) {
+      // Opening: smooth staggered slide-in of labels, badges and section header
+      gsap.fromTo(
+        ".sidebar-nav-label",
+        { x: -14, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.32, stagger: 0.025, ease: "power2.out" }
+      );
+      gsap.fromTo(
+        ".sidebar-nav-badge",
+        { scale: 0.6, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.3, stagger: 0.025, delay: 0.08, ease: "back.out(1.5)" }
+      );
+      gsap.fromTo(
+        ".sidebar-section-title",
+        { opacity: 0, y: -4 },
+        { opacity: 1, y: 0, duration: 0.25, ease: "power2.out" }
+      );
+    } else {
+      // Closing: smooth slide-out
+      gsap.to(".sidebar-nav-label", {
+        x: -10,
+        opacity: 0,
+        duration: 0.18,
+        stagger: 0.015,
+        ease: "power2.in",
+      });
+      gsap.to(".sidebar-nav-badge", {
+        scale: 0.7,
+        opacity: 0,
+        duration: 0.15,
+        ease: "power2.in",
+      });
+    }
+
+    // 4. Subtle active item breathing feedback
+    gsap.fromTo(
+      ".sidebar-item-active",
+      { scale: 0.96 },
+      { scale: 1, duration: 0.32, ease: "back.out(1.4)" }
+    );
+  }, [isCollapsed]);
 
   // GSAP Grand Entrance Wave (runs only once on initial entrance)
   useEffect(() => {
@@ -105,8 +186,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* ── Brand Header (Fixed 72px Height) ── */}
       <div className="relative h-20 px-3.5 border-b border-aura-border/50 flex items-center shrink-0">
         <div className="flex items-center gap-3 min-w-0">
-          {/* Logo Box: 100% Fixed at left:14px, NEVER moves */}
-          <div className="w-11 h-11 rounded-xl bg-aura-surface-active border border-aura-primary/30 flex items-center justify-center p-1.5 shadow-glow shrink-0">
+          {/* Logo Box: 100% Fixed at left:14px with sidebar-nav-icon for GSAP wave */}
+          <div className="sidebar-nav-icon w-11 h-11 rounded-xl bg-aura-surface-active border border-aura-primary/30 flex items-center justify-center p-1.5 shadow-glow shrink-0 will-change-transform">
             <img
               src="/aura-pod-logo.svg"
               alt="AURA Pod"
@@ -135,17 +216,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* Collapse Toggle Button: Mounted to right edge, perfectly aligned with the center of the logo */}
+        {/* Collapse Toggle Button: Mounted to right edge with GSAP rotating chevron */}
         <button
           onClick={toggleCollapse}
           className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-aura-surface border border-aura-border shadow-md flex items-center justify-center text-aura-text-secondary hover:text-aura-primary hover:border-aura-primary/50 hover:bg-aura-surface-active cursor-pointer z-50 transition-colors"
           title={isCollapsed ? "Buka Sidebar" : "Tutup Sidebar"}
         >
-          {isCollapsed ? (
-            <ChevronRight className="w-3.5 h-3.5 text-aura-primary" />
-          ) : (
-            <ChevronLeft className="w-3.5 h-3.5 text-aura-primary" />
-          )}
+          <ChevronLeft
+            ref={toggleIconRef}
+            className="w-3.5 h-3.5 text-aura-primary will-change-transform"
+          />
         </button>
       </div>
 
@@ -153,7 +233,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex-1 py-4 px-3.5 overflow-y-auto space-y-1.5 overflow-x-hidden">
         <div
           className={cn(
-            "text-[10px] font-semibold uppercase tracking-wider text-aura-text-secondary transition-[opacity,max-width] duration-300 overflow-hidden whitespace-nowrap px-1",
+            "sidebar-section-title text-[10px] font-semibold uppercase tracking-wider text-aura-text-secondary transition-[opacity,max-width] duration-300 overflow-hidden whitespace-nowrap px-1",
             isCollapsed ? "opacity-0 max-w-0 h-0 my-0 py-0" : "opacity-100 max-w-full"
           )}
         >
@@ -173,14 +253,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={cn(
                 "sidebar-item-wave w-full h-11 flex items-center justify-start rounded-xl text-sm font-medium transition-colors duration-150 group cursor-pointer relative overflow-hidden",
                 isActive
-                  ? "bg-aura-surface-active text-aura-primary border border-aura-primary/40 shadow-glow font-semibold"
+                  ? "sidebar-item-active bg-aura-surface-active text-aura-primary border border-aura-primary/40 shadow-glow font-semibold"
                   : isDisabled
                   ? "text-aura-text-secondary/40 cursor-not-allowed hover:bg-transparent"
                   : "text-aura-text-secondary hover:text-aura-text-primary hover:bg-aura-surface-subtle"
               )}
             >
-              {/* Fixed Icon Wrapper: 100% Fixed at left, identically sized to logo box width */}
-              <span className="w-11 h-11 flex items-center justify-center shrink-0">
+              {/* Fixed Icon Wrapper: with sidebar-nav-icon for GSAP micro-float */}
+              <span className="sidebar-nav-icon w-11 h-11 flex items-center justify-center shrink-0 will-change-transform">
                 <span
                   className={cn(
                     "transition-colors",
@@ -195,19 +275,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </span>
               </span>
 
-              {/* Text Label: Disappears cleanly without jumping */}
+              {/* Text Label: with sidebar-nav-label for GSAP slide-and-fade */}
               <span
                 className={cn(
-                  "transition-[opacity,max-width] duration-300 whitespace-nowrap overflow-hidden text-left font-medium ml-1",
+                  "sidebar-nav-label transition-[opacity,max-width] duration-300 whitespace-nowrap overflow-hidden text-left font-medium ml-1",
                   isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[125px]"
                 )}
               >
                 {item.label}
               </span>
 
-              {/* Badge: hidden when collapsed */}
+              {/* Badge: with sidebar-nav-badge for GSAP scale-in */}
               {!isCollapsed && item.badge && (
-                <span className="ml-auto mr-2 text-[10px] px-1.5 py-0.5 rounded-full bg-aura-surface-subtle text-aura-text-secondary font-mono border border-aura-border shrink-0">
+                <span className="sidebar-nav-badge ml-auto mr-2 text-[10px] px-1.5 py-0.5 rounded-full bg-aura-surface-subtle text-aura-text-secondary font-mono border border-aura-border shrink-0">
                   {item.badge}
                 </span>
               )}
@@ -218,35 +298,78 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* ── Hardware Connection, Logout & Status Footer ── */}
       <div className="px-3.5 py-3 space-y-2 bg-aura-surface border-t border-aura-border/50 shrink-0">
-        {/* ESP32 Hardware Status */}
-        {!isCollapsed ? (
-          /* Expanded Mode: Full Card */
-          <div className="p-3 rounded-xl bg-aura-surface-subtle/50 border border-aura-border/60 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Radio className="w-3.5 h-3.5 text-aura-primary" />
-                <span className="text-xs font-semibold text-aura-text-primary">ESP32 Core</span>
-              </div>
-              <span
+        {/* ESP32 Hardware Status - Persistent Animated Container */}
+        <div
+          className={cn(
+            "rounded-xl border transition-all duration-300 overflow-hidden",
+            isCollapsed
+              ? "p-0 bg-transparent border-transparent"
+              : "p-3 bg-aura-surface-subtle/50 border-aura-border/60 space-y-2"
+          )}
+        >
+          {/* Top row: Fixed Radio icon button & collapsible status texts */}
+          <div className="flex items-center justify-between min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {/* Radio Icon: Always persistent with sidebar-nav-icon for GSAP animation */}
+              <button
+                onClick={onRefresh}
                 className={cn(
-                  "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium font-mono",
-                  isEspOnline
-                    ? "bg-aura-surface-active text-aura-primary border border-aura-primary/30"
-                    : "bg-red-500/10 text-red-500 border border-red-500/30"
+                  "sidebar-nav-icon w-11 h-11 rounded-xl flex items-center justify-center relative cursor-pointer transition-colors shrink-0 will-change-transform",
+                  isCollapsed
+                    ? "bg-aura-surface-subtle border border-aura-border hover:bg-aura-surface-active shadow-sm"
+                    : "bg-transparent border-none p-0"
                 )}
+                title={isEspOnline ? "ESP32 Core: Online (Klik untuk sinkronisasi)" : "ESP32 Core: Offline"}
               >
+                <Radio className={cn("w-4 h-4", isEspOnline ? "text-aura-primary" : "text-red-500")} />
                 <span
                   className={cn(
-                    "w-1.5 h-1.5 rounded-full",
-                    isEspOnline
-                      ? "bg-aura-primary animate-pulse shadow-glow"
-                      : "bg-red-500"
+                    "absolute top-1.5 right-1.5 w-2 h-2 rounded-full border-2 border-aura-surface",
+                    isEspOnline ? "bg-aura-primary animate-pulse" : "bg-red-500"
                   )}
                 />
-                {isEspOnline ? "Online" : "Offline"}
+              </button>
+
+              {/* Status title */}
+              <span
+                className={cn(
+                  "text-xs font-semibold text-aura-text-primary transition-[opacity,max-width] duration-300 whitespace-nowrap overflow-hidden",
+                  isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[90px]"
+                )}
+              >
+                ESP32 Core
               </span>
             </div>
 
+            {/* Pill Badge */}
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium font-mono transition-[opacity,max-width] duration-300 whitespace-nowrap overflow-hidden shrink-0",
+                isCollapsed ? "opacity-0 max-w-0 pointer-events-none scale-90" : "opacity-100 max-w-[80px]",
+                isEspOnline
+                  ? "bg-aura-surface-active text-aura-primary border border-aura-primary/30"
+                  : "bg-red-500/10 text-red-500 border border-red-500/30"
+              )}
+            >
+              <span
+                className={cn(
+                  "w-1.5 h-1.5 rounded-full",
+                  isEspOnline
+                    ? "bg-aura-primary animate-pulse shadow-glow"
+                    : "bg-red-500"
+                )}
+              />
+              {isEspOnline ? "Online" : "Offline"}
+            </span>
+          </div>
+
+          {/* Subtitle & Sync Button: Smoothly collapsable */}
+          <div
+            className={cn(
+              "transition-[opacity,max-height] duration-300 overflow-hidden space-y-2",
+              isCollapsed ? "opacity-0 max-h-0 pointer-events-none" : "opacity-100 max-h-24 pt-1"
+            )}
+          >
             <div className="flex items-center justify-between text-[11px] text-aura-text-secondary pt-1 border-t border-aura-border/60">
               <span>Blynk IoT Protocol</span>
               <span className="font-mono text-[10px] text-aura-primary">Ready</span>
@@ -256,45 +379,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="w-full mt-1.5 py-1 px-2 rounded-md bg-aura-surface-subtle hover:bg-aura-border/40 text-[10px] text-aura-text-secondary hover:text-aura-text-primary flex items-center justify-center gap-1.5 transition-colors border border-aura-border cursor-pointer disabled:opacity-50"
+              className="w-full mt-1 py-1 px-2 rounded-md bg-aura-surface-subtle hover:bg-aura-border/40 text-[10px] text-aura-text-secondary hover:text-aura-text-primary flex items-center justify-center gap-1.5 transition-colors border border-aura-border cursor-pointer disabled:opacity-50"
               title="Sinkronkan status telemetri perangkat dengan Blynk Cloud"
             >
               <RefreshCw className={cn("w-3 h-3 text-aura-primary", isRefreshing && "animate-spin")} />
               <span>{isRefreshing ? "Menyinkronkan..." : "Sinkronkan Blynk"}</span>
             </button>
           </div>
-        ) : (
-          /* Collapsed Mode: Fixed Icon Beacon aligned with nav icons */
-          <div className="w-full h-11 flex items-center justify-start">
-            <button
-              onClick={onRefresh}
-              className="w-11 h-11 rounded-xl bg-aura-surface-subtle border border-aura-border flex items-center justify-center relative cursor-pointer hover:bg-aura-surface-active transition-colors shrink-0"
-              title={isEspOnline ? "ESP32 Online - Klik untuk sinkronisasi" : "ESP32 Offline"}
-            >
-              <Radio className={cn("w-4 h-4", isEspOnline ? "text-aura-primary" : "text-red-500")} />
-              <span
-                className={cn(
-                  "absolute top-1.5 right-1.5 w-2 h-2 rounded-full border-2 border-aura-surface",
-                  isEspOnline ? "bg-aura-primary animate-pulse" : "bg-red-500"
-                )}
-              />
-            </button>
-          </div>
-        )}
+        </div>
 
-        {/* ── Logout Button (Identical Fixed Anchor in both states) ── */}
+        {/* ── Logout Button (Animated with sidebar-nav-icon) ── */}
         {onLogout && (
           <button
             onClick={onLogout}
             title={isCollapsed ? "Keluar Sistem" : undefined}
             className="w-full h-11 flex items-center justify-start rounded-xl text-xs font-medium text-aura-text-secondary hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-colors cursor-pointer group overflow-hidden"
           >
-            {/* Fixed Icon Slot: Exactly 44px (w-11) */}
-            <span className="w-11 h-11 flex items-center justify-center shrink-0">
+            {/* Fixed Icon Slot with sidebar-nav-icon for GSAP animation */}
+            <span className="sidebar-nav-icon w-11 h-11 flex items-center justify-center shrink-0 will-change-transform">
               <LogOut className="w-4 h-4 text-aura-text-secondary group-hover:text-red-400 transition-colors" />
             </span>
 
-            {/* Label: Disappears without horizontal translation */}
+            {/* Label */}
             <span
               className={cn(
                 "transition-[opacity,max-width] duration-300 whitespace-nowrap overflow-hidden font-medium ml-1",
@@ -306,13 +412,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
-        {/* Version info: Only shown when expanded */}
-        {!isCollapsed && (
-          <div className="flex items-center justify-between px-1 text-[10px] text-aura-text-secondary/70 font-mono pt-1">
-            <span>{APP_CONFIG.version}</span>
-            <span>ESP32-WROOM</span>
-          </div>
-        )}
+        {/* Version info: Smooth collapse */}
+        <div
+          className={cn(
+            "flex items-center justify-between px-1 text-[10px] text-aura-text-secondary/70 font-mono transition-[opacity,max-height] duration-300 overflow-hidden",
+            isCollapsed ? "opacity-0 max-h-0 pointer-events-none" : "opacity-100 max-h-6 pt-1"
+          )}
+        >
+          <span>{APP_CONFIG.version}</span>
+          <span>ESP32-WROOM</span>
+        </div>
       </div>
     </aside>
   );

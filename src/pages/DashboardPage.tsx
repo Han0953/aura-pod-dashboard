@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import gsap from "gsap";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { OverviewView } from "@/views/OverviewView";
@@ -16,9 +17,32 @@ export const DashboardPage: React.FC = () => {
   const [isEntrance, setIsEntrance] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeView, setActiveView] = useState<ViewId>("overview");
+  const isFirstMount = useRef(true);
 
   const dashboard = useDashboardData();
   const { theme } = useTheme();
+
+  // GSAP animation when sidebar expands or collapses
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+
+    // 1. Smooth fluid reposition of the Topbar title block
+    gsap.fromTo(
+      "#topbar-title-block",
+      { x: isSidebarCollapsed ? 12 : -12, opacity: 0.8 },
+      { x: 0, opacity: 1, duration: 0.35, ease: "power2.out" }
+    );
+
+    // 2. Tactile re-layout breathing on dashboard bento cards
+    gsap.fromTo(
+      ".dashboard-stagger-card",
+      { scale: 0.992 },
+      { scale: 1, duration: 0.3, stagger: 0.015, ease: "power2.out" }
+    );
+  }, [isSidebarCollapsed]);
 
   // Detect ?entrance=1 from Rolling Door transition
   useEffect(() => {
