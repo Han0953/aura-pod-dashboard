@@ -301,18 +301,25 @@ export const LoginPage: React.FC = () => {
             Authentication Gate
           </span>
 
-          {/* Theme Switcher */}
+          {/* Theme Switcher with Smooth Rotation */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2.5 rounded-xl bg-aura-surface hover:bg-aura-surface-subtle border border-aura-border text-aura-text-secondary hover:text-aura-text-primary transition-colors cursor-pointer"
+            className="p-2.5 rounded-xl bg-aura-surface hover:bg-aura-surface-subtle border border-aura-border text-aura-text-secondary hover:text-aura-text-primary transition-all duration-300 cursor-pointer group relative overflow-hidden"
             title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
-            {theme === "dark" ? (
-              <Sun className="w-4 h-4 text-amber-400" />
-            ) : (
-              <Moon className="w-4 h-4 text-blue-500" />
-            )}
+            <div
+              className={cn(
+                "w-4 h-4 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+                theme === "dark" ? "rotate-0 scale-100" : "rotate-[360deg] scale-100"
+              )}
+            >
+              {theme === "dark" ? (
+                <Sun className="w-4 h-4 text-amber-400 transition-transform group-hover:rotate-45 duration-300" />
+              ) : (
+                <Moon className="w-4 h-4 text-blue-500 transition-transform group-hover:-rotate-12 duration-300" />
+              )}
+            </div>
           </button>
         </div>
 

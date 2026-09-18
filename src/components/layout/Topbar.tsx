@@ -258,7 +258,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   };
 
   return (
-    <header className="h-18 px-8 bg-aura-surface/75 backdrop-blur-xl flex items-center justify-between sticky top-0 z-20 transition-colors duration-200">
+    <header className="h-18 px-8 bg-aura-surface/75 backdrop-blur-xl flex items-center justify-between sticky top-0 z-20">
       {/* Left: View Title & Subtitle */}
       <div id="topbar-title-block" className="flex flex-col py-3">
         <h1 className="font-heading text-lg font-bold text-aura-text-primary tracking-tight flex items-center gap-2">
@@ -269,24 +269,31 @@ export const Topbar: React.FC<TopbarProps> = ({
 
       {/* Right: Actions and Status indicators */}
       <div className="flex items-center gap-3">
-        {/* Theme Toggle Icon Button */}
+        {/* Theme Toggle Icon Button with Smooth Morphing */}
         <button
           type="button"
           onClick={toggleTheme}
           aria-label={theme === "dark" ? "Ganti ke Light Mode" : "Ganti ke Dark Mode"}
           title={theme === "dark" ? "Ganti ke Light Mode" : "Ganti ke Dark Mode"}
           className={cn(
-            "p-2 rounded-lg border transition-colors duration-150 shadow-sm cursor-pointer",
+            "p-2 rounded-lg border transition-all duration-200 shadow-sm cursor-pointer relative overflow-hidden group",
             theme === "dark"
               ? "bg-aura-surface-subtle border-aura-border text-amber-400 hover:bg-aura-border/40 hover:border-amber-400/40"
-              : "bg-white border-aura-border text-emerald-700 hover:bg-aura-surface-subtle"
+              : "bg-white border-aura-border text-emerald-700 hover:bg-aura-surface-subtle hover:border-emerald-600/30"
           )}
         >
-          {theme === "dark" ? (
-            <Sun className="w-4 h-4 text-amber-400" />
-          ) : (
-            <Moon className="w-4 h-4 text-emerald-700" />
-          )}
+          <div
+            className={cn(
+              "w-4 h-4 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+              theme === "dark" ? "rotate-0 scale-100" : "rotate-[360deg] scale-100"
+            )}
+          >
+            {theme === "dark" ? (
+              <Sun className="w-4 h-4 text-amber-400 transition-transform group-hover:rotate-45 duration-300" />
+            ) : (
+              <Moon className="w-4 h-4 text-emerald-700 transition-transform group-hover:-rotate-12 duration-300" />
+            )}
+          </div>
         </button>
 
         {/* Telemetry Sync Timestamp */}

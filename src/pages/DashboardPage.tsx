@@ -9,9 +9,7 @@ import { DeviceView } from "@/views/DeviceView";
 import { AnalyticsView } from "@/views/AnalyticsView";
 import { SettingsView } from "@/views/SettingsView";
 import { useDashboardData } from "@/services/dashboardService";
-import { useTheme } from "@/context/ThemeContext";
 import { ViewId } from "@/types/navigation";
-import { cn } from "@/lib/utils";
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -85,7 +83,6 @@ export const DashboardPage: React.FC = () => {
   }, []);
 
   const dashboard = useDashboardData();
-  const { theme } = useTheme();
 
   // GSAP animation when sidebar expands or collapses
   useEffect(() => {
@@ -123,13 +120,7 @@ export const DashboardPage: React.FC = () => {
   }, [handleViewChange]);
 
   return (
-    <div
-      data-theme={theme}
-      className={cn(
-        "flex h-screen w-screen overflow-hidden transition-colors duration-200 bg-aura-bg text-aura-text-primary",
-        theme === "dark" ? "dark" : "light"
-      )}
-    >
+    <div className="flex h-screen w-screen overflow-hidden bg-aura-bg text-aura-text-primary">
       {/* Collapsible Left Sidebar */}
       <Sidebar
         activeView={activeView}
@@ -159,7 +150,7 @@ export const DashboardPage: React.FC = () => {
         {/* Scrollable View Canvas */}
         <main
           ref={mainContentRef}
-          className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 transition-colors duration-200 bg-aura-bg"
+          className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 bg-transparent"
         >
           <div className="max-w-7xl mx-auto">
             {activeView === "overview" && (

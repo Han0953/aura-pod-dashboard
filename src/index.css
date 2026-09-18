@@ -6,7 +6,6 @@
   /* LIGHT THEME: Clean Crisp White with Green Accent (#F8FAFC canvas, #FFFFFF cards, #0F172A text, #059669 emerald) */
   :root,
   html.light,
-  body.light,
   [data-theme="light"] {
     --bg-canvas: 248 250 252;          /* #F8FAFC crisp clean white */
     --surface-card: 255 255 255;       /* #FFFFFF pure white card */
@@ -29,9 +28,7 @@
 
   /* DARK THEME: Pure OLED Black with ultra-deep emerald cards (#000000 canvas, #050907 cards, #0E1813 border, #00E599 mint) */
   html.dark,
-  body.dark,
-  [data-theme="dark"],
-  .dark {
+  [data-theme="dark"] {
     --bg-canvas: 0 0 0;                /* #000000 True OLED Black (pixels turned off) */
     --surface-card: 5 9 7;             /* #050907 Ultra-dark obsidian with faint emerald shadow */
     --surface-subtle: 3 6 4;           /* #030604 Ultra-deep subtle surface */
@@ -51,18 +48,42 @@
     color-scheme: dark;
   }
 
+  html {
+    background-color: rgb(var(--bg-canvas));
+    color: rgb(var(--text-primary));
+  }
+
   body {
     background-color: rgb(var(--bg-canvas));
     color: rgb(var(--text-primary));
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
-    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   }
+}
+
+/* ── Global Harmonized Theme Transitions (Zero Desync, Perfectly Unified 200ms) ── */
+html,
+body,
+#root,
+header,
+aside,
+.bg-aura-bg,
+.bg-aura-surface,
+.bg-aura-surface-subtle,
+.bg-aura-surface-active,
+.border-aura-border,
+.border-aura-border-hover,
+.text-aura-text-primary,
+.text-aura-text-secondary {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0s;
 }
 
 /* Tabular figures for IoT Telemetry numbers */

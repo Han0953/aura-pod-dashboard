@@ -49,8 +49,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return "dark";
   });
 
-  useEffect(() => {
+  // Synchronously apply theme on initial mount before paint
+  React.useLayoutEffect(() => {
     applyThemeToDom(theme);
+  }, []);
+
+  // Save to localStorage whenever theme changes
+  useEffect(() => {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch (e) {
@@ -59,10 +64,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [theme]);
 
   const toggleTheme = () => {
-    setThemeState((prev) => (prev === "dark" ? "light" : "dark"));
+    const nextTheme: Theme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
   };
 
   const setTheme = (newTheme: Theme) => {
+    // Synchronously update DOM classes & CSS variables immediately on click!
+    applyThemeToDom(newTheme);
     setThemeState(newTheme);
   };
 
