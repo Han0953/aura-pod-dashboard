@@ -76,59 +76,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
     // Keep icon transform strictly fixed (zero x/y jitter or horizontal bounce)
     gsap.set(".sidebar-nav-icon", { x: 0, y: 0 });
 
-    // 3. Smooth vertical glide on navigation items & Core Navigation title
     if (!isCollapsed) {
-      // Opening: Navigation items smoothly glide DOWNWARDS to accommodate the Core Navigation title
+      // Opening: Navigation items smoothly glide DOWNWARDS with subtle cascade
       gsap.fromTo(
         ".sidebar-item-wave",
-        { y: -20 },
-        { y: 0, duration: 0.32, ease: "power2.out" }
+        { y: -14, opacity: 0.8 },
+        { y: 0, opacity: 1, duration: 0.3, ease: "power2.out", stagger: 0.02 }
       );
 
       // Core Navigation title smoothly slides down and fades in
       gsap.fromTo(
         ".sidebar-section-title",
-        { opacity: 0, y: -8 },
-        { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }
+        { opacity: 0, y: -6 },
+        { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" }
       );
 
       // Staggered slide-in of labels and badges
       gsap.fromTo(
         ".sidebar-nav-label",
-        { x: -14, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.32, stagger: 0.02, ease: "power2.out" }
+        { x: -12, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.3, stagger: 0.02, ease: "power2.out" }
       );
       gsap.fromTo(
         ".sidebar-nav-badge",
-        { opacity: 0 },
-        { opacity: 1, duration: 0.25, stagger: 0.02, delay: 0.08, ease: "power2.out" }
+        { opacity: 0, scale: 0.8 },
+        { opacity: 1, scale: 1, duration: 0.25, delay: 0.08, ease: "back.out(1.5)" }
       );
     } else {
       // Closing: Navigation items smoothly glide UPWARDS as Core Navigation title collapses
       gsap.fromTo(
         ".sidebar-item-wave",
-        { y: 20 },
-        { y: 0, duration: 0.32, ease: "power2.out" }
+        { y: 14 },
+        { y: 0, duration: 0.25, ease: "power2.out" }
       );
 
       // Core Navigation title smoothly slides up and fades out
       gsap.to(".sidebar-section-title", {
         opacity: 0,
-        y: -8,
-        duration: 0.2,
+        y: -6,
+        duration: 0.18,
         ease: "power2.in",
       });
 
       // Smooth slide-out of labels and badges
       gsap.to(".sidebar-nav-label", {
-        x: -10,
+        x: -8,
         opacity: 0,
         duration: 0.18,
-        stagger: 0.015,
+        stagger: 0.012,
         ease: "power2.in",
       });
       gsap.to(".sidebar-nav-badge", {
         opacity: 0,
+        scale: 0.8,
         duration: 0.15,
         ease: "power2.in",
       });
@@ -186,7 +186,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       ref={sidebarRef}
       className={cn(
-        "h-screen bg-aura-surface border-r border-aura-border flex flex-col justify-between shrink-0 select-none z-30 transition-[width] duration-300 ease-in-out relative",
+        "h-screen bg-aura-surface border-r border-aura-border flex flex-col justify-between shrink-0 select-none z-30 sidebar-expand-transition relative",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
@@ -279,7 +279,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               disabled={isDisabled}
               title={isCollapsed ? item.label : undefined}
               className={cn(
-                "sidebar-item-wave h-11 flex items-center justify-start rounded-xl text-sm font-medium transition-colors duration-150 group cursor-pointer relative overflow-hidden border",
+                "sidebar-item-wave h-11 flex items-center justify-start rounded-xl text-sm font-medium transition-[width,background-color,border-color,color] duration-300 ease-in-out group cursor-pointer relative overflow-hidden border",
                 isCollapsed ? "w-11" : "w-full",
                 isActive
                   ? "sidebar-item-active bg-aura-surface-active text-aura-primary border-aura-primary/40 shadow-glow font-semibold"
@@ -307,8 +307,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* Text Label: with sidebar-nav-label for GSAP slide-and-fade */}
               <span
                 className={cn(
-                  "sidebar-nav-label transition-[opacity,max-width] duration-300 whitespace-nowrap overflow-hidden text-left font-medium ml-1",
-                  isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[125px]"
+                  "sidebar-nav-label transition-[max-width] duration-300 ease-in-out whitespace-nowrap overflow-hidden text-left font-medium ml-1",
+                  isCollapsed ? "max-w-0 pointer-events-none" : "max-w-[125px]"
                 )}
               >
                 {item.label}
@@ -423,7 +423,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onLogout}
             title={isCollapsed ? "Keluar Sistem" : undefined}
             className={cn(
-              "h-11 flex items-center justify-start rounded-xl text-xs font-medium text-aura-text-secondary hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-colors duration-150 cursor-pointer group overflow-hidden",
+              "h-11 flex items-center justify-start rounded-xl text-xs font-medium text-aura-text-secondary hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-[width,background-color,border-color,color] duration-300 ease-in-out cursor-pointer group overflow-hidden",
               isCollapsed ? "w-11" : "w-full"
             )}
           >
