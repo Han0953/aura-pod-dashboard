@@ -33,8 +33,8 @@ export const NAV_ITEMS: NavItem[] = [
   { id: "overview", label: "Overview" },
   { id: "monitoring", label: "Sensor Telemetry" },
   { id: "device", label: "Device Management" },
-  { id: "analytics", label: "Analytics", badge: "Soon", disabled: true },
-  { id: "settings", label: "Settings", badge: "Soon", disabled: true },
+  { id: "analytics", label: "Analytics" },
+  { id: "settings", label: "Settings" },
 ];
 
 export const INITIAL_PIN_MAPPINGS: PinMapping[] = [

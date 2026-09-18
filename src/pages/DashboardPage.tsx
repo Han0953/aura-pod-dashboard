@@ -6,6 +6,8 @@ import { Topbar } from "@/components/layout/Topbar";
 import { OverviewView } from "@/views/OverviewView";
 import { MonitoringView } from "@/views/MonitoringView";
 import { DeviceView } from "@/views/DeviceView";
+import { AnalyticsView } from "@/views/AnalyticsView";
+import { SettingsView } from "@/views/SettingsView";
 import { useDashboardData } from "@/services/dashboardService";
 import { useTheme } from "@/context/ThemeContext";
 import { ViewId } from "@/types/navigation";
@@ -25,7 +27,38 @@ export const DashboardPage: React.FC = () => {
       return false;
     }
   });
-  const [activeView, setActiveView] = useState<ViewId>("overview");
+
+  // Read saved active tab from localStorage on initial render, unless arriving fresh from login (?entrance=1)
+  const [activeView, setActiveView] = useState<ViewId>(() => {
+    if (isEntrance) {
+      try {
+        localStorage.setItem("aura_active_view", "overview");
+      } catch {}
+      return "overview";
+    }
+    try {
+      const saved = localStorage.getItem("aura_active_view");
+      if (
+        saved &&
+        (saved === "overview" ||
+          saved === "monitoring" ||
+          saved === "device" ||
+          saved === "analytics" ||
+          saved === "settings")
+      ) {
+        return saved as ViewId;
+      }
+    } catch {}
+    return "overview";
+  });
+
+  const handleViewChange = useCallback((view: ViewId) => {
+    setActiveView(view);
+    try {
+      localStorage.setItem("aura_active_view", view);
+    } catch {}
+  }, []);
+
   const isFirstMount = useRef(true);
 
   const handleToggleSidebar = useCallback(() => {
@@ -66,12 +99,15 @@ export const DashboardPage: React.FC = () => {
   }, []);
 
   const handleLogout = useCallback(() => {
+    try {
+      localStorage.removeItem("aura_active_view");
+    } catch {}
     navigate("/login");
   }, [navigate]);
 
-  const handleNavigateToDevice = () => {
-    setActiveView("device");
-  };
+  const handleNavigateToDevice = useCallback(() => {
+    handleViewChange("device");
+  }, [handleViewChange]);
 
   return (
     <div
@@ -84,7 +120,7 @@ export const DashboardPage: React.FC = () => {
       {/* Collapsible Left Sidebar */}
       <Sidebar
         activeView={activeView}
-        onViewChange={setActiveView}
+        onViewChange={handleViewChange}
         isEspOnline={dashboard.deviceStatus.online}
         onRefresh={dashboard.refreshData}
         isRefreshing={dashboard.isRefreshing}
@@ -123,6 +159,14 @@ export const DashboardPage: React.FC = () => {
 
             {activeView === "device" && (
               <DeviceView dashboard={dashboard} />
+            )}
+
+            {activeView === "analytics" && (
+              <AnalyticsView dashboard={dashboard} />
+            )}
+
+            {activeView === "settings" && (
+              <SettingsView dashboard={dashboard} onViewChange={handleViewChange} />
             )}
           </div>
         </main>
