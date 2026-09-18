@@ -8,14 +8,14 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { MultiSeriesSensorPoint } from "@/types/sensor";
+import { MultiSeriesSensorPoint, TimeRange } from "@/types/sensor";
 import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
 
 interface SensorChartProps {
   data: MultiSeriesSensorPoint[];
-  timeRange: "1H" | "6H" | "24H" | "7D";
-  onTimeRangeChange: (range: "1H" | "6H" | "24H" | "7D") => void;
+  timeRange: TimeRange;
+  onTimeRangeChange: (range: TimeRange) => void;
   currentTemp?: number;
   currentGas?: number | null;
   title?: string;
@@ -50,7 +50,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, i
           isDark ? "text-[#7D9B91] border-[#16332B]" : "text-slate-500 border-slate-200"
         )}
       >
-        Time: <span className="font-medium font-mono">{label}</span>
+        Waktu: <span className="font-medium font-mono">{label}</span>
       </div>
       <div className="space-y-1.5">
         {payload.map((entry) => {
@@ -97,7 +97,7 @@ export const SensorChart: React.FC<SensorChartProps> = ({
 }) => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
-  const timeRanges: Array<"1H" | "6H" | "24H" | "7D"> = ["1H", "6H", "24H", "7D"];
+  const timeRanges: TimeRange[] = ["1H", "24H", "7D", "30D"];
 
   // Precise chart colors depending on theme per DESIGN.md
   const tempColor = isDark ? "#00E599" : "#059669";
@@ -117,7 +117,7 @@ export const SensorChart: React.FC<SensorChartProps> = ({
             <span className="w-2 h-2 rounded-full bg-aura-primary animate-ping" />
           </div>
           <p className="text-xs text-aura-text-secondary mt-0.5">
-            Real-time telemetry stream · Multi-parameter synchronization
+            Aliran telemetri waktu-nyata · Sinkronisasi multi-parameter sensor
           </p>
         </div>
 
@@ -201,12 +201,10 @@ export const SensorChart: React.FC<SensorChartProps> = ({
           <span className="text-aura-text-secondary">
             Temperature (DS18B20):{" "}
             <span className="text-aura-text-primary font-mono font-bold tabular-nums">
-              {currentTemp} °C
+              {currentTemp > 0 ? `${currentTemp} °C` : "--"}
             </span>
           </span>
         </div>
-
-
 
         <div className="flex items-center gap-2 text-xs">
           <span
@@ -216,7 +214,7 @@ export const SensorChart: React.FC<SensorChartProps> = ({
           <span className="text-aura-text-secondary">
             Gas Index (MQ-135):{" "}
             <span className="text-aura-text-primary font-mono font-bold tabular-nums">
-              {currentGas !== null ? `${currentGas} AQI` : "Unavailable"}
+              {currentGas !== null && currentGas > 0 ? `${currentGas} AQI` : "--"}
             </span>
           </span>
         </div>

@@ -132,27 +132,27 @@ export const Topbar: React.FC<TopbarProps> = ({
       case "overview":
         return {
           title: "System Overview",
-          subtitle: "Live telemetry, photoperiod lighting, and microalgae culture health",
+          subtitle: "Pemantauan telemetri langsung, pencahayaan fotoperiode, dan kesehatan kultur alga",
         };
       case "monitoring":
         return {
           title: "Sensor Telemetry & Trends",
-          subtitle: "DS18B20 temperature and MQ-135 Gas Index analytics",
+          subtitle: "Analisis telemetri suhu DS18B20 dan indeks gas MQ-135 secara berkala",
         };
       case "device":
         return {
           title: "Device Management & Hardware Diagnostics",
-          subtitle: "Hardware diagnostics, sensor health checks, and actuator overrides",
+          subtitle: "Diagnostik perangkat keras, status modul sensor, dan kontrol manual aktuator",
         };
       case "analytics":
         return {
           title: "Advanced Analytics",
-          subtitle: "Historical regression and photobiological modeling",
+          subtitle: "Agregasi statistik, korelasi sensor, dan pemodelan biologis kultur alga",
         };
       case "settings":
         return {
           title: "Settings & Configurations",
-          subtitle: "Blynk IoT credentials, alert thresholds, and network parameters",
+          subtitle: "Konfigurasi tampilan visual, batas toleransi sensor, dan parameter IoT",
         };
     }
   };

@@ -118,9 +118,9 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           <SensorCard
             title="Grow Light Status"
             hardwareSensor="Full Spectrum 660/450nm"
-            value={deviceStatus.led ? "ON" : "OFF"}
-            unit={deviceStatus.led ? "180 µmol" : ""}
-            status={deviceStatus.led ? "active" : "inactive"}
+            value={isOffline ? "--" : deviceStatus.led ? "ON" : "OFF"}
+            unit={isOffline ? "" : deviceStatus.led ? "180 µmol" : ""}
+            status={isOffline ? "inactive" : deviceStatus.led ? "active" : "inactive"}
             icon={<Sun className="w-5 h-5 text-aura-primary" />}
             colorTheme="mint"
             sparkline="none"

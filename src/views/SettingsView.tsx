@@ -97,7 +97,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
             <StatusBadge variant={deviceStatus.online ? "online" : "offline"} />
           </div>
           <p className="text-xs text-aura-text-secondary mt-1 max-w-2xl">
-            Configure visual appearance, review firmware sensor thresholds, inspect IoT datastream pin assignments, and manage local storage cache.
+            Konfigurasi tampilan visual, tinjau batas toleransi sensor firmware, pantau pemetaan pin IoT, dan kelola preferensi penyimpanan lokal.
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
           </h3>
         </div>
         <p className="text-xs text-aura-text-secondary mb-5">
-          Select between OLED dark eco-mode or high-contrast clean light mode. Changes persist across browser sessions.
+          Pilih antara mode gelap OLED hemat daya atau mode terang kontras tinggi. Pengaturan tersimpan otomatis di peramban.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -143,12 +143,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
                   <span>OLED Obsidian Dark</span>
                   {isDark && (
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-aura-primary/10 text-aura-primary font-bold">
-                      Active
+                      Aktif
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-aura-text-secondary mt-1 leading-relaxed">
-                  Pure black canvas with emerald accents (#00E599). Tailored for low-light lab monitoring and battery efficiency.
+                  Kanvas hitam pekat dengan aksen hijau emerald (#00E599). Dirancang untuk pemantauan lab minim cahaya dan efisiensi baterai.
                 </p>
               </div>
             </div>
@@ -175,12 +175,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
                   <span>Clean Slate Light</span>
                   {!isDark && (
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold">
-                      Active
+                      Aktif
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-aura-text-secondary mt-1 leading-relaxed">
-                  Clean white slate canvas (#F8FAFC) with deep emerald text. Suited for daylight presentations and documentation exports.
+                  Kanvas putih bersih (#F8FAFC) dengan teks emerald pekat. Suited untuk presentasi di siang hari dan pencetakan dokumen.
                 </p>
               </div>
             </div>
@@ -205,7 +205,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
           </span>
         </div>
         <p className="text-xs text-aura-text-secondary mb-5">
-          Preset guardrails defined in ESP32 firmware for culture viability. Out-of-bound events automatically generate warnings.
+          Batas toleransi keselamatan kultur mikroalga yang ditentukan pada firmware ESP32. Peringatan otomatis muncul bila melampaui batas.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -221,7 +221,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
                 </span>
               </div>
               <p className="text-[11px] text-aura-text-secondary mt-1">
-                Optimal growth window for <i>Chlorella vulgaris</i> culture.
+                Jendela pertumbuhan optimal untuk kultur mikroalga <i>Chlorella vulgaris</i>.
               </p>
             </div>
 
@@ -251,7 +251,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
                 </span>
               </div>
               <p className="text-[11px] text-aura-text-secondary mt-1">
-                Relative air/gas exchange metric (AQI Idx). Alert triggered at &gt;200 Idx.
+                Metrik pertukaran gas/udara relatif (AQI Idx). Peringatan otomatis aktif jika melampaui 200 Idx.
               </p>
             </div>
 
@@ -284,11 +284,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
             </h3>
           </div>
           <span className="text-xs font-mono text-aura-text-secondary">
-            {isBlynkConfigured ? "Blynk REST Configured" : "Mock Telemetry Mode"}
+            {isBlynkConfigured ? "Blynk REST Terkonfigurasi" : "Mock Telemetry Mode"}
           </span>
         </div>
         <p className="text-xs text-aura-text-secondary mb-4">
-          Hardware specification and ESP32 GPIO-to-Virtual-Pin routing table for AURA Pod prototype node.
+          Spesifikasi perangkat keras dan tabel perutean pin GPIO fisik ke pin virtual Blynk untuk node prototype AURA Pod.
         </p>
 
         {/* Hardware Meta Grid */}
@@ -353,7 +353,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
           </h3>
         </div>
         <p className="text-xs text-aura-text-secondary mb-4">
-          Actions below manage browser local storage cache and notification buffers. Use when resetting test environments.
+          Tindakan di bawah ini mengelola cache memori peramban lokal dan buffer notifikasi. Digunakan untuk mereset lingkungan pengujian.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -363,11 +363,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
               <div className="font-semibold text-xs text-aura-text-primary flex items-center justify-between">
                 <span>Clear Event &amp; Notification History</span>
                 <span className="text-[10px] font-mono text-aura-text-secondary">
-                  {notifications.length} in buffer
+                  {notifications.length} item
                 </span>
               </div>
               <p className="text-[11px] text-aura-text-secondary mt-1">
-                Removes all historical notification alerts from the topbar feed and analytics table.
+                Menghapus seluruh riwayat notifikasi peringatan dari bilah atas dan tabel analitik.
               </p>
             </div>
 
@@ -384,7 +384,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
               {clearNotifSuccess ? (
                 <>
                   <CheckCircle2 className="w-3.5 h-3.5 text-aura-primary" />
-                  <span>Notification Feed Cleared!</span>
+                  <span>Riwayat Notifikasi Dibersihkan!</span>
                 </>
               ) : (
                 <>
@@ -405,7 +405,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
                 </span>
               </div>
               <p className="text-[11px] text-aura-text-secondary mt-1">
-                Clears saved active tab and sidebar collapse state, restoring factory default view layout.
+                Menghapus tab aktif dan status sidebar yang tersimpan di memori lokal, mengembalikan tata letak standar pabrik.
               </p>
             </div>
 
@@ -422,7 +422,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
               {resetPrefSuccess ? (
                 <>
                   <CheckCircle2 className="w-3.5 h-3.5 text-aura-primary" />
-                  <span>Preferences Reset!</span>
+                  <span>Preferensi Tampilan Direset!</span>
                 </>
               ) : (
                 <>

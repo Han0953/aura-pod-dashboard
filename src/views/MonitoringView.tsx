@@ -233,7 +233,7 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
                   Recent Telemetry Sampling Log
                 </h3>
                 <p className="text-xs text-aura-text-secondary">
-                  Recorded data points synchronized from ESP32 telemetry bus
+                  Titik data yang terekam dan disinkronkan langsung dari bus telemetri ESP32
                 </p>
               </div>
             </div>

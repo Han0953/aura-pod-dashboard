@@ -36,7 +36,7 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
                 Quick Actuator Controls
               </h2>
               <span className="text-[11px] text-aura-text-secondary">
-                Direct Actuator Relay Overrides
+                Kontrol langsung relai aktuator fisik bioreaktor
               </span>
             </div>
           </div>
@@ -52,7 +52,8 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
                 "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold transition-colors duration-150 border cursor-pointer",
                 isManual
                   ? "bg-amber-500/10 text-amber-500 border-amber-500/30 hover:bg-amber-500/20"
-                  : "bg-aura-surface-active text-aura-primary border-aura-primary/40 hover:bg-aura-primary/20 shadow-glow"
+                  : "bg-aura-surface-active text-aura-primary border-aura-primary/40 hover:bg-aura-primary/20 shadow-glow",
+                disabled && "opacity-50 cursor-not-allowed"
               )}
             >
               <Zap className="w-3 h-3" />
@@ -69,12 +70,18 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
         <p className="text-xs text-aura-text-secondary mb-3">
           {isManual
             ? "Mode Manual aktif: Kontrol berada pada tombol fisik hardware ESP32."
-            : "Mode IoT aktif: Kontrol relay aktif melalui cloud Blynk."}
+            : "Mode IoT aktif: Kontrol relai aktif melalui cloud Blynk."}
         </p>
 
         {isManual && (
           <div className="mb-3 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-600 dark:text-amber-400 font-mono">
-            ⚠️ Mode Manual: Tombol web disinkronkan dengan hardware (tidak mengambil alih tombol fisik).
+            ⚠️ Mode Manual: Tombol antarmuka web disinkronkan dengan hardware (tanpa mengesampingkan tombol fisik).
+          </div>
+        )}
+
+        {disabled && (
+          <div className="mb-3 p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-[11px] text-red-500 font-mono">
+            ⚠️ ESP32 Offline: Aktuator dinonaktifkan demi perlindungan sistem.
           </div>
         )}
 
@@ -130,7 +137,8 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
                 disabled={disabled}
                 aria-label="Toggle LED Grow Light"
                 className={cn(
-                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-aura-primary",
+                  "relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-aura-primary",
+                  disabled ? "opacity-50 cursor-not-allowed bg-aura-border" : "cursor-pointer",
                   ledOn ? "bg-aura-primary shadow-glow" : "bg-aura-border"
                 )}
               >
@@ -145,9 +153,9 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
 
             {/* Power metric row */}
             <div className="flex items-center justify-between text-[11px] text-aura-text-secondary mt-3 pt-2 border-t border-aura-border/50">
-              <span>Power: ~10 W</span>
+              <span>Konsumsi Daya: ~10 W</span>
               <span className="font-mono text-aura-primary">
-                {ledOn ? "Full Spectrum Active" : "Standby"}
+                {ledOn ? "Full Spectrum Active" : disabled ? "Offline (Mati)" : "Standby (OFF)"}
               </span>
             </div>
           </div>
@@ -202,7 +210,8 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
                 disabled={disabled}
                 aria-label="Toggle Aerator Pump"
                 className={cn(
-                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-aura-primary",
+                  "relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-aura-primary",
+                  disabled ? "opacity-50 cursor-not-allowed bg-aura-border" : "cursor-pointer",
                   aeratorOn ? "bg-aura-primary shadow-glow" : "bg-aura-border"
                 )}
               >
@@ -217,9 +226,9 @@ export const ActuatorControl: React.FC<ActuatorControlProps> = ({
 
             {/* Aerator metric row */}
             <div className="flex items-center justify-between text-[11px] text-aura-text-secondary mt-3 pt-2 border-t border-aura-border/50">
-              <span>Circulation Rate: ~1.5 L/min</span>
+              <span>Debit Sirkulasi: ~1.5 L/min</span>
               <span className="font-mono text-aura-primary">
-                {aeratorOn ? "Active Aeration" : "Standby"}
+                {aeratorOn ? "Continuous Aeration" : disabled ? "Offline (Mati)" : "Standby (OFF)"}
               </span>
             </div>
           </div>

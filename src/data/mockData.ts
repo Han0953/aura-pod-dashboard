@@ -1,4 +1,4 @@
-import { SensorData, MultiSeriesSensorPoint } from "@/types/sensor";
+import { SensorData, MultiSeriesSensorPoint, TimeRange } from "@/types/sensor";
 import { DeviceStatus, HardwareDiagnostic } from "@/types/device";
 import { CarbonMetric, BiomassMetric } from "@/types/mrv";
 
@@ -45,30 +45,33 @@ export const MOCK_BIOMASS_METRIC: BiomassMetric = {
 };
 
 // Generates realistic telemetry points for time-series charts
-export function generateTelemetryHistory(range: "1H" | "6H" | "24H" | "7D"): MultiSeriesSensorPoint[] {
+export function generateTelemetryHistory(range: TimeRange): MultiSeriesSensorPoint[] {
   const points: MultiSeriesSensorPoint[] = [];
   const now = Date.now();
 
   let count = 12;
   let intervalMs = 5 * 60 * 1000; // 5 min for 1H
 
-  if (range === "6H") {
-    count = 18;
-    intervalMs = 20 * 60 * 1000;
-  } else if (range === "24H") {
+  if (range === "24H") {
     count = 24;
-    intervalMs = 60 * 60 * 1000;
+    intervalMs = 60 * 60 * 1000; // 1 hour for 24H
   } else if (range === "7D") {
     count = 14;
-    intervalMs = 12 * 60 * 60 * 1000;
+    intervalMs = 12 * 60 * 60 * 1000; // 12 hours for 7D
+  } else if (range === "30D") {
+    count = 30;
+    intervalMs = 24 * 60 * 60 * 1000; // 1 day for 30D
   }
 
   for (let i = count - 1; i >= 0; i--) {
     const time = new Date(now - i * intervalMs);
-    const timeLabel =
-      range === "7D"
-        ? time.toLocaleDateString("en-US", { weekday: "short", day: "numeric" })
-        : time.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+    let timeLabel = time.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+
+    if (range === "7D") {
+      timeLabel = time.toLocaleDateString("en-US", { weekday: "short", day: "numeric" });
+    } else if (range === "30D") {
+      timeLabel = time.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }
 
     points.push({
       timestamp: time.toISOString(),

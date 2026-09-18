@@ -41,7 +41,7 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
           </div>
           <div className="text-[11px] text-aura-primary font-mono flex items-center gap-1">
             <CheckCircle2 className="w-3 h-3" />
-            <span>Clock Frequency Nominal</span>
+            <span>{isOnline ? "Frekuensi Clock Nominal" : "Mikrokontroler Offline"}</span>
           </div>
         </div>
 
@@ -56,12 +56,12 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
               {isOnline ? `${diagnostics.freeHeapKb} KB` : "0 KB"}
             </div>
             <div className="text-[11px] text-aura-text-secondary">
-              Heap Fragmentation: 4.2%
+              Fragmentasi Heap: 4.2%
             </div>
           </div>
           <div className="text-[11px] text-aura-cyan font-mono flex items-center gap-1">
             <CheckCircle2 className="w-3 h-3" />
-            <span>Memory Safe Corridor</span>
+            <span>{isOnline ? "Koridor Memori Aman" : "Memori Tidak Terbaca"}</span>
           </div>
         </div>
 
@@ -77,7 +77,7 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
                 {isOnline ? `${diagnostics.wifiSignalDbm} dBm` : "--"}
               </span>
               <span className="text-xs text-aura-primary font-semibold">
-                {isOnline ? "Excellent" : "No Link"}
+                {isOnline ? "Sinyal Baik" : "Terputus"}
               </span>
             </div>
             <div className="text-[11px] text-aura-text-secondary truncate">
@@ -97,10 +97,10 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
           </div>
           <div className="my-2">
             <div className="text-2xl font-bold text-aura-text-primary font-mono tabular-nums">
-              {isOnline ? diagnostics.uptime : "0h 00m"}
+              {isOnline ? diagnostics.uptime : "--"}
             </div>
             <div className="text-[11px] text-aura-text-secondary">
-              Zero watchdog resets
+              {isOnline ? "Nol reset pengawas (watchdog)" : "Perangkat tidak aktif"}
             </div>
           </div>
           <div className="text-[11px] text-aura-text-secondary font-mono">
@@ -114,10 +114,10 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
             <h3 className="font-heading text-base font-bold text-aura-text-primary tracking-tight">
-              Hardware Bus & Virtual Pin Mapping
+              Hardware Bus &amp; Virtual Pin Mapping
             </h3>
             <p className="text-xs text-aura-text-secondary">
-              ESP32 GPIO allocation to Blynk Virtual Pins (Firmware Config Reference)
+              Alokasi GPIO ESP32 ke Pin Virtual Blynk (Referensi Konfigurasi Firmware)
             </p>
           </div>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-aura-surface-active text-aura-primary text-xs font-mono border border-aura-primary/30">

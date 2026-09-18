@@ -20,6 +20,8 @@ export interface MultiSeriesSensorPoint {
   gasIndex: number | null;
 }
 
+export type TimeRange = "1H" | "24H" | "7D" | "30D";
+
 export interface SensorThresholds {
   min: number;
   max: number;

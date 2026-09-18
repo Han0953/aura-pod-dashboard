@@ -53,7 +53,7 @@ export const SensorCard: React.FC<SensorCardProps> = ({
   };
 
   const theme = getThemeStyles();
-  const displayValue = value !== null && value !== undefined ? value : 0;
+  const displayValue = offline ? "--" : value !== null && value !== undefined ? value : 0;
 
   return (
     <div className="flex flex-col justify-between bg-aura-surface border border-aura-border hover:border-aura-border-hover p-5 rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md group">
@@ -80,26 +80,26 @@ export const SensorCard: React.FC<SensorCardProps> = ({
 
         <StatusBadge
           variant={offline ? "offline" : status}
-          label={offline ? "ESP32 Offline" : undefined}
+          label={offline ? "Offline" : undefined}
         />
       </div>
 
       {/* Main Metric Value & Mini Sparkline */}
       <div className="flex items-baseline justify-between mt-4 mb-2">
         <div className="flex items-baseline gap-1.5">
-          <span className="font-heading text-3xl font-bold text-aura-text-primary tabular-nums tracking-tight">
+          <span className="font-heading text-3xl font-bold text-aura-text-primary tabular-nums tracking-tight font-mono">
             {displayValue}
           </span>
-          {unit && (
-            <span className="text-sm text-aura-text-secondary font-medium">
+          {!offline && unit && (
+            <span className="text-sm text-aura-text-secondary font-medium font-mono">
               {unit}
             </span>
           )}
         </div>
 
         {/* Mini SVG Sparkline */}
-        {sparkline !== "none" && (
-          <div className={cn("w-24 h-9 overflow-visible transition-opacity", offline && "opacity-70")}>
+        {sparkline !== "none" && !offline && (
+          <div className="w-24 h-9 overflow-visible transition-opacity">
             <svg
               className="w-full h-full overflow-visible"
               fill="none"
@@ -107,7 +107,7 @@ export const SensorCard: React.FC<SensorCardProps> = ({
               xmlns="http://www.w3.org/2000/svg"
             >
               <defs>
-                <linearGradient id={theme.sparkGradientId} x1="0" x2="0" y1="0" y2="1">
+                <linearGradient id={theme.sparkGradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={theme.sparkStop} stopOpacity="0.25" />
                   <stop offset="100%" stopColor={theme.sparkStop} stopOpacity="0.0" />
                 </linearGradient>
@@ -146,15 +146,23 @@ export const SensorCard: React.FC<SensorCardProps> = ({
             </svg>
           </div>
         )}
+
+        {sparkline !== "none" && offline && (
+          <div className="w-24 h-9 flex items-center justify-center opacity-35">
+            <svg className="w-full h-full" viewBox="0 0 96 36" fill="none">
+              <line x1="0" y1="18" x2="96" y2="18" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" className="text-aura-text-secondary" />
+            </svg>
+          </div>
+        )}
       </div>
 
       {/* Telemetry Status & Metadata Footer */}
       <div className="flex items-center justify-between pt-2 border-t border-aura-border/60 text-xs text-aura-text-secondary">
         <span className="text-[11px] text-aura-text-secondary">
-          {offline ? "ESP32 Disconnected" : "Telemetry Active"}
+          {offline ? "Perangkat Terputus" : "Telemetri Aktif"}
         </span>
         <span className="text-[10px] text-aura-text-secondary font-mono">
-          {offline ? "Standby" : "10s Polling"}
+          {offline ? "Siaga (Standby)" : "Polling 10d"}
         </span>
       </div>
     </div>

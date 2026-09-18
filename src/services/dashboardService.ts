@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { SensorData, MultiSeriesSensorPoint } from "@/types/sensor";
+import { SensorData, MultiSeriesSensorPoint, TimeRange } from "@/types/sensor";
 import { DeviceStatus, HardwareDiagnostic } from "@/types/device";
 import { CarbonMetric, BiomassMetric } from "@/types/mrv";
 import { SystemNotification } from "@/types/notification";
@@ -79,8 +79,8 @@ export interface DashboardContextType {
   carbonMetric: CarbonMetric;
   biomassMetric: BiomassMetric;
   telemetryHistory: MultiSeriesSensorPoint[];
-  timeRange: "1H" | "6H" | "24H" | "7D";
-  setTimeRange: (range: "1H" | "6H" | "24H" | "7D") => void;
+  timeRange: TimeRange;
+  setTimeRange: (range: TimeRange) => void;
   lastUpdatedText: string;
   isRefreshing: boolean;
   isBlynkConfigured: boolean;
@@ -100,16 +100,63 @@ export function useDashboardData(): DashboardContextType {
   const [diagnostics] = useState<HardwareDiagnostic>(MOCK_HARDWARE_DIAGNOSTICS);
   const [carbonMetric] = useState<CarbonMetric>(MOCK_CARBON_METRIC);
   const [biomassMetric] = useState<BiomassMetric>(MOCK_BIOMASS_METRIC);
-  const [timeRange, setTimeRange] = useState<"1H" | "6H" | "24H" | "7D">("1H");
+  const [timeRange, setTimeRange] = useState<TimeRange>("1H");
   const [rawHistory, setRawHistory] = useState<MultiSeriesSensorPoint[]>(() => {
     const stored = loadStoredHistory();
     if (stored.length > 0) return stored;
     return generateTelemetryHistory("1H");
   });
   const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
-  const [lastUpdatedText, setLastUpdatedText] = useState<string>("Connecting to ESP32...");
+  const [lastUpdatedText, setLastUpdatedText] = useState<string>("Menghubungkan ke ESP32...");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const isBlynkConfigured = blynkService.isConfigured();
+
+  // Live Uptime Ticker (Realtime seconds counter when online)
+  const [uptimeSeconds, setUptimeSeconds] = useState<number>(() => 412320);
+
+  useEffect(() => {
+    if (!deviceStatus.online) return;
+    const interval = setInterval(() => {
+      setUptimeSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [deviceStatus.online]);
+
+  const formatUptime = (totalSec: number) => {
+    const days = Math.floor(totalSec / 86400);
+    const hours = Math.floor((totalSec % 86400) / 3600);
+    const minutes = Math.floor((totalSec % 3600) / 60);
+    const seconds = totalSec % 60;
+    if (days > 0) {
+      return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
+
+  const currentDiagnostics: HardwareDiagnostic = useMemo(() => {
+    if (!deviceStatus.online) {
+      return {
+        ...diagnostics,
+        uptime: "--",
+        wifiSsid: "Disconnected",
+        wifiSignalDbm: 0,
+        ipAddress: "--",
+        cpuFrequencyMhz: 0,
+        freeHeapKb: 0,
+        lastSeen: "Offline",
+      };
+    }
+    return {
+      ...diagnostics,
+      uptime: formatUptime(uptimeSeconds),
+      wifiSsid: diagnostics.wifiSsid,
+      wifiSignalDbm: diagnostics.wifiSignalDbm,
+      ipAddress: diagnostics.ipAddress,
+      cpuFrequencyMhz: diagnostics.cpuFrequencyMhz,
+      freeHeapKb: diagnostics.freeHeapKb,
+      lastSeen: "Just now (sync: 2s ago)",
+    };
+  }, [deviceStatus.online, diagnostics, uptimeSeconds]);
 
   const [notifications, setNotifications] = useState<SystemNotification[]>(() => loadStoredNotifications());
 
@@ -159,18 +206,22 @@ export function useDashboardData(): DashboardContextType {
   // Relative time counter
   useEffect(() => {
     const timer = setInterval(() => {
+      if (!deviceStatus.online) {
+        setLastUpdatedText("Perangkat Terputus (Offline)");
+        return;
+      }
       const diffSec = Math.floor((Date.now() - lastSyncTime.getTime()) / 1000);
       if (diffSec < 5) {
-        setLastUpdatedText("Just now");
+        setLastUpdatedText("Baru saja");
       } else if (diffSec < 60) {
-        setLastUpdatedText(`${diffSec}s ago`);
+        setLastUpdatedText(`${diffSec} detik lalu`);
       } else {
         const diffMin = Math.floor(diffSec / 60);
-        setLastUpdatedText(`${diffMin}m ago`);
+        setLastUpdatedText(`${diffMin} menit lalu`);
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [lastSyncTime]);
+  }, [deviceStatus.online, lastSyncTime]);
 
   // Live Sync with Blynk Cloud REST API (V0 - V4)
   const refreshData = useCallback(async () => {
@@ -299,11 +350,29 @@ export function useDashboardData(): DashboardContextType {
     }
   }, []);
 
-  // Telemetry history with 0 baseline or live rolling stream
+  // Telemetry history with flat 0 when offline or live rolling stream when online
   const telemetryHistory = useMemo(() => {
+    if (!deviceStatus.online) {
+      return generateTelemetryHistory(timeRange).map((p) => ({
+        ...p,
+        temperature: 0,
+        gasIndex: 0,
+      }));
+    }
     if (rawHistory.length === 0) return generateTelemetryHistory(timeRange);
     return rawHistory;
-  }, [rawHistory, timeRange]);
+  }, [deviceStatus.online, rawHistory, timeRange]);
+
+  const currentSensorData: SensorData = useMemo(() => {
+    if (!deviceStatus.online) {
+      return {
+        temperature: 0,
+        gasIndex: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    return sensorData;
+  }, [deviceStatus.online, sensorData]);
 
   // Periodic polling
   useEffect(() => {
@@ -332,7 +401,7 @@ export function useDashboardData(): DashboardContextType {
   }, [deviceStatus.aerator]);
 
   const toggleMode = useCallback(async () => {
-    const nextMode = deviceStatus.mode === "iot" ? "manual" : "iot";
+    const nextMode = deviceStatus.mode === "manual" ? "iot" : "manual";
     setDeviceStatus((prev) => ({ ...prev, mode: nextMode }));
     if (blynkService.isConfigured()) {
       await blynkService.updatePin("v4", nextMode === "iot" ? 1 : 0);
@@ -340,9 +409,9 @@ export function useDashboardData(): DashboardContextType {
   }, [deviceStatus.mode]);
 
   return {
-    sensorData,
+    sensorData: currentSensorData,
     deviceStatus,
-    diagnostics,
+    diagnostics: currentDiagnostics,
     carbonMetric,
     biomassMetric,
     telemetryHistory,

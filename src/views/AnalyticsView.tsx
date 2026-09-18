@@ -101,21 +101,21 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
 
   // Summary Metrics calculations
   const avgTemp = useMemo(() => {
-    if (!tempValues.length) return "0.0";
+    if (!deviceStatus.online || !tempValues.length) return "--";
     const sum = tempValues.reduce((acc, curr) => acc + curr, 0);
     return (sum / tempValues.length).toFixed(1);
-  }, [tempValues]);
+  }, [deviceStatus.online, tempValues]);
 
   const peakGasIndex = useMemo(() => {
-    if (!gasValues.length) return "--";
+    if (!deviceStatus.online || !gasValues.length) return "--";
     return Math.round(Math.max(...gasValues)).toString();
-  }, [gasValues]);
+  }, [deviceStatus.online, gasValues]);
 
   const avgGasIndex = useMemo(() => {
-    if (!gasValues.length) return "--";
+    if (!deviceStatus.online || !gasValues.length) return "--";
     const sum = gasValues.reduce((acc, curr) => acc + curr, 0);
     return Math.round(sum / gasValues.length).toString();
-  }, [gasValues]);
+  }, [deviceStatus.online, gasValues]);
 
   // Temperature Distribution Histogram Data
   const tempDistributionData = useMemo(() => {
@@ -194,15 +194,14 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
             <StatusBadge variant={deviceStatus.online ? "online" : "offline"} />
           </div>
           <p className="text-xs text-aura-text-secondary mt-1 max-w-2xl">
-            Statistical aggregation of culture temperature (DS18B20) and volatile gas index (MQ-135)
-            across selected time windows.
+            Agregasi statistik suhu kultur (DS18B20) dan indeks gas volatil (MQ-135) pada rentang waktu terpilih.
           </p>
         </div>
 
         {/* Action Controls: Time Range Selector & CSV Export */}
         <div className="flex items-center gap-2.5 flex-wrap">
           <div className="inline-flex p-1 rounded-xl bg-aura-surface-subtle border border-aura-border gap-1">
-            {(["1H", "6H", "24H", "7D"] as const).map((range) => (
+            {(["1H", "24H", "7D", "30D"] as const).map((range) => (
               <button
                 key={range}
                 type="button"
@@ -262,7 +261,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
           </div>
           <div className="mt-2 text-[11px] text-aura-text-secondary flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-aura-primary" />
-            <span>Optimal: {SENSOR_THRESHOLDS.temperature.toleranceStr}</span>
+            <span>Rentang Optimal: {SENSOR_THRESHOLDS.temperature.toleranceStr}</span>
           </div>
         </div>
 
@@ -282,7 +281,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
           </div>
           <div className="mt-2 text-[11px] text-aura-text-secondary flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-aura-amber" />
-            <span>Relative AQI metric (MQ-135)</span>
+            <span>Metrik AQI relatif (MQ-135)</span>
           </div>
         </div>
 
@@ -295,13 +294,13 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-aura-text-primary tabular-nums">
+            <span className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-aura-text-primary tabular-nums font-mono">
               {diagnostics.uptime}
             </span>
           </div>
           <div className="mt-2 text-[11px] text-aura-text-secondary flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-aura-cyan" />
-            <span>{diagnostics.wifiSsid} ({diagnostics.wifiSignalDbm} dBm)</span>
+            <span>{deviceStatus.online ? `${diagnostics.wifiSsid} (${diagnostics.wifiSignalDbm} dBm)` : "Perangkat Terputus"}</span>
           </div>
         </div>
 
@@ -315,13 +314,13 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-aura-text-primary tabular-nums font-mono">
-              {telemetryHistory.length}
+              {deviceStatus.online ? telemetryHistory.length : 0}
             </span>
-            <span className="text-xs text-aura-text-secondary font-mono">data pts</span>
+            <span className="text-xs text-aura-text-secondary font-mono">titik data</span>
           </div>
           <div className="mt-2 text-[11px] text-aura-text-secondary flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-aura-primary animate-pulse" />
-            <span>Window: {timeRange} resolution</span>
+            <span>Resolusi: Jendela waktu {timeRange}</span>
           </div>
         </div>
       </div>
@@ -343,7 +342,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
               </span>
             </div>
             <p className="text-xs text-aura-text-secondary mt-1">
-              Sample count frequency across thermal ranges. Green highlights optimal culture bounds.
+              Frekuensi pembacaan suhu pada setiap rentang batas. Warna hijau menandakan batas pertumbuhan optimal alga.
             </p>
           </div>
 
@@ -422,7 +421,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
               </span>
             </div>
             <p className="text-xs text-aura-text-secondary mt-1">
-              Relative gas exchange index over time. (Note: Non-calibrated indicator; not CO₂ ppm).
+              Fluktuasi relatif pertukaran gas dari waktu ke waktu (Catatan: Indikator relatif MQ-135, bukan ppm CO₂).
             </p>
           </div>
 
@@ -499,7 +498,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
               </h3>
             </div>
             <p className="text-xs text-aura-text-secondary mt-1">
-              Scatter distribution mapping culture temperature (°C) against headspace gas index (AQI Idx)
+              Distribusi sebaran korelasi antara suhu kultur (°C) terhadap indeks gas headspace (AQI Idx)
             </p>
           </div>
           <span className="text-xs font-mono text-aura-text-secondary self-start sm:self-auto">

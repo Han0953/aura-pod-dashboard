@@ -19,52 +19,54 @@ export const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
   deviceStatus,
   onNavigateToDevice,
 }) => {
+  const isOnline = deviceStatus.online;
+
   const hardwareUnits = [
     {
       name: "ESP32 Core",
       detail: "WROOM-32D Dual-Core SoC",
       icon: <Cpu className="w-4 h-4 text-aura-primary" />,
-      status: deviceStatus.online ? "Online" : "Offline",
-      statusColor: deviceStatus.online ? "text-aura-primary bg-aura-surface-active" : "text-red-500 bg-red-500/10",
-      isPulse: deviceStatus.online,
+      status: isOnline ? "Online" : "Offline",
+      statusColor: isOnline ? "text-aura-primary bg-aura-surface-active" : "text-red-500 bg-red-500/10",
+      isPulse: isOnline,
     },
     {
       name: "LED Grow Light",
       detail: "Full Spectrum 660/450nm",
       icon: <Lightbulb className="w-4 h-4 text-aura-primary" />,
-      status: deviceStatus.led ? "ON" : "OFF",
-      statusColor: deviceStatus.led ? "text-aura-primary bg-aura-primary/10 font-bold" : "text-aura-text-secondary bg-aura-surface-subtle",
+      status: isOnline && deviceStatus.led ? "ON" : "OFF",
+      statusColor: isOnline && deviceStatus.led ? "text-aura-primary bg-aura-primary/10 font-bold" : "text-aura-text-secondary bg-aura-surface-subtle",
       isPulse: false,
     },
     {
       name: "Aerator Pump",
       detail: "Micro-bubble Venturi",
       icon: <Fan className="w-4 h-4 text-aura-primary" />,
-      status: deviceStatus.aerator ? "ON" : "OFF",
-      statusColor: deviceStatus.aerator ? "text-aura-primary bg-aura-primary/10 font-bold" : "text-aura-text-secondary bg-aura-surface-subtle",
+      status: isOnline && deviceStatus.aerator ? "ON" : "OFF",
+      statusColor: isOnline && deviceStatus.aerator ? "text-aura-primary bg-aura-primary/10 font-bold" : "text-aura-text-secondary bg-aura-surface-subtle",
       isPulse: false,
     },
     {
       name: "MQ-135 Sensor",
       detail: "Gas Quality & Air Index",
       icon: <Wind className="w-4 h-4 text-aura-amber" />,
-      status: deviceStatus.online ? "Active" : "Standby",
-      statusColor: "text-aura-amber bg-aura-amber/10",
+      status: isOnline ? "Active" : "Offline",
+      statusColor: isOnline ? "text-aura-amber bg-aura-amber/10" : "text-aura-text-secondary bg-aura-surface-subtle",
       isPulse: false,
     },
     {
       name: "DS18B20 Sensor",
       detail: "Waterproof Temp Probe",
       icon: <Thermometer className="w-4 h-4 text-aura-primary" />,
-      status: deviceStatus.online ? "Active" : "Standby",
-      statusColor: "text-aura-primary bg-aura-surface-active",
+      status: isOnline ? "Active" : "Offline",
+      statusColor: isOnline ? "text-aura-primary bg-aura-surface-active" : "text-aura-text-secondary bg-aura-surface-subtle",
       isPulse: false,
     },
   ];
 
-  const activeCount = hardwareUnits.filter(
-    (u) => u.status !== "Offline" && u.status !== "Disconnected"
-  ).length;
+  const activeCount = isOnline
+    ? hardwareUnits.filter((u) => u.status !== "Offline" && u.status !== "OFF").length
+    : 0;
 
   return (
     <div className="flex flex-col bg-aura-surface border border-aura-border rounded-2xl p-6 shadow-sm justify-between">
@@ -83,7 +85,7 @@ export const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
           {onNavigateToDevice && (
             <button
               onClick={onNavigateToDevice}
-              className="text-xs text-aura-primary hover:text-aura-primary-hover flex items-center gap-1 group transition-colors"
+              className="text-xs text-aura-primary hover:text-aura-primary-hover flex items-center gap-1 group transition-colors cursor-pointer"
             >
               <span>View Diagnostics</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -92,7 +94,7 @@ export const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
         </div>
 
         <p className="text-xs text-aura-text-secondary mb-4">
-          Hardware components and sensor modules status
+          Status operasional modul sensor dan aktuator perangkat keras
         </p>
 
         {/* Modules List */}
@@ -135,13 +137,14 @@ export const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
       {/* Footer Health Summary */}
       <div className="mt-4 pt-3 border-t border-aura-border flex items-center justify-between text-xs text-aura-text-secondary">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-aura-primary" />
+          <span className={cn("w-2 h-2 rounded-full", isOnline ? "bg-aura-primary animate-pulse" : "bg-red-500")} />
           <span>
-            <strong className="text-aura-text-primary font-mono">{activeCount}/{hardwareUnits.length}</strong> Units Nominal
+            <strong className="text-aura-text-primary font-mono">{activeCount}/{hardwareUnits.length}</strong>{" "}
+            {isOnline ? "Unit Beroperasi Normal" : "Perangkat Terputus"}
           </span>
         </div>
         <span className="font-mono text-[11px] text-aura-text-secondary">
-          Ping: 18ms
+          {isOnline ? "Ping: 18ms" : "Ping: --"}
         </span>
       </div>
     </div>
