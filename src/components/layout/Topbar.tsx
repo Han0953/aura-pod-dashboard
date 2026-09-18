@@ -10,6 +10,7 @@ import {
   Info,
   Trash2,
   CheckCheck,
+  X,
 } from "lucide-react";
 import { ViewId } from "@/types/navigation";
 import { SystemNotification } from "@/types/notification";
@@ -23,6 +24,7 @@ interface TopbarProps {
   unreadNotificationCount?: number;
   onMarkAllAsRead?: () => void;
   onClearAllNotifications?: () => void;
+  onDeleteNotification?: (id: string) => void;
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
@@ -32,12 +34,16 @@ export const Topbar: React.FC<TopbarProps> = ({
   unreadNotificationCount = 0,
   onMarkAllAsRead,
   onClearAllNotifications,
+  onDeleteNotification,
 }) => {
   const { theme, toggleTheme } = useTheme();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isNotifMounted, setIsNotifMounted] = useState(false);
+  const [isClearingAll, setIsClearingAll] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const notifListRef = useRef<HTMLDivElement>(null);
+  const emptyStateRef = useRef<HTMLDivElement>(null);
   const bellIconRef = useRef<SVGSVGElement>(null);
   const isAnimatingRef = useRef(false);
 
@@ -126,6 +132,74 @@ export const Topbar: React.FC<TopbarProps> = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isNotifMounted, isNotifOpen]);
+
+  // Smooth exit animation for Clear All (cascading wave swipe-out)
+  const handleClearAll = () => {
+    if (!onClearAllNotifications || isClearingAll) return;
+    const cards = notifListRef.current?.querySelectorAll(".notif-card-item");
+    if (!cards || cards.length === 0) {
+      onClearAllNotifications();
+      return;
+    }
+
+    setIsClearingAll(true);
+    gsap.to(cards, {
+      x: 45,
+      opacity: 0,
+      scale: 0.95,
+      duration: 0.24,
+      stagger: 0.035,
+      ease: "power2.in",
+      onComplete: () => {
+        onClearAllNotifications();
+        setIsClearingAll(false);
+      },
+    });
+  };
+
+  // Smooth exit animation for deleting an individual notification
+  const handleDismissSingle = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onDeleteNotification) return;
+
+    const card = (e.currentTarget as HTMLElement).closest(".notif-card-item") as HTMLElement;
+    if (card) {
+      gsap.to(card, {
+        x: 40,
+        opacity: 0,
+        scale: 0.94,
+        duration: 0.22,
+        ease: "power2.in",
+        onComplete: () => {
+          gsap.to(card, {
+            height: 0,
+            paddingTop: 0,
+            paddingBottom: 0,
+            marginTop: 0,
+            marginBottom: 0,
+            duration: 0.18,
+            ease: "power2.out",
+            onComplete: () => {
+              onDeleteNotification(id);
+            },
+          });
+        },
+      });
+    } else {
+      onDeleteNotification(id);
+    }
+  };
+
+  // Entrance animation for empty state when notifications are cleared
+  useEffect(() => {
+    if (notifications.length === 0 && emptyStateRef.current && isNotifMounted) {
+      gsap.fromTo(
+        emptyStateRef.current,
+        { opacity: 0, scale: 0.92, y: 6 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.32, ease: "back.out(1.4)" }
+      );
+    }
+  }, [notifications.length, isNotifMounted]);
 
   const getHeaderInfo = () => {
     switch (activeView) {
@@ -277,8 +351,9 @@ export const Topbar: React.FC<TopbarProps> = ({
                   {notifications.length > 0 && onClearAllNotifications && (
                     <button
                       type="button"
-                      onClick={onClearAllNotifications}
-                      className="p-1 rounded-md text-aura-text-secondary hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
+                      onClick={handleClearAll}
+                      disabled={isClearingAll}
+                      className="p-1 rounded-md text-aura-text-secondary hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50"
                       title="Bersihkan semua notifikasi"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -288,9 +363,9 @@ export const Topbar: React.FC<TopbarProps> = ({
               </div>
 
               {/* Notification List */}
-              <div className="mt-3 max-h-80 overflow-y-auto space-y-2 pr-1">
+              <div ref={notifListRef} className="mt-3 max-h-80 overflow-y-auto space-y-2 pr-1">
                 {notifications.length === 0 ? (
-                  <div className="py-8 flex flex-col items-center justify-center text-center">
+                  <div ref={emptyStateRef} className="py-8 flex flex-col items-center justify-center text-center">
                     <CheckCircle2 className="w-8 h-8 text-aura-primary/50 mb-2" />
                     <p className="font-semibold text-xs text-aura-text-primary">
                       Tidak Ada Notifikasi
@@ -304,14 +379,14 @@ export const Topbar: React.FC<TopbarProps> = ({
                     <div
                       key={notif.id}
                       className={cn(
-                        "p-3 rounded-xl border text-xs transition-colors flex items-start gap-2.5",
+                        "notif-card-item p-3 rounded-xl border text-xs flex items-start gap-2.5 relative group/item overflow-hidden transition-colors",
                         notif.read
                           ? "bg-aura-surface-subtle/50 border-aura-border/60 text-aura-text-secondary"
                           : "bg-aura-surface-active/30 border-aura-primary/30 text-aura-text-primary shadow-sm"
                       )}
                     >
-                      <div className="mt-0.5">{getSeverityIcon(notif.severity)}</div>
-                      <div className="flex-1 min-w-0">
+                      <div className="mt-0.5 shrink-0">{getSeverityIcon(notif.severity)}</div>
+                      <div className="flex-1 min-w-0 pr-6">
                         <div className="flex items-center justify-between gap-2">
                           <span
                             className={cn(
@@ -329,7 +404,20 @@ export const Topbar: React.FC<TopbarProps> = ({
                           {notif.message}
                         </p>
                       </div>
-                      {!notif.read && (
+
+                      {/* Individual dismiss button with smooth swipe-out animation */}
+                      {onDeleteNotification && (
+                        <button
+                          type="button"
+                          onClick={(e) => handleDismissSingle(notif.id, e)}
+                          className="absolute top-2.5 right-2.5 w-5 h-5 rounded-md flex items-center justify-center text-aura-text-secondary/50 hover:text-red-400 hover:bg-red-500/15 opacity-60 group-hover/item:opacity-100 transition-all cursor-pointer"
+                          title="Hapus notifikasi ini"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+
+                      {!notif.read && !onDeleteNotification && (
                         <span className="w-1.5 h-1.5 rounded-full bg-aura-primary shrink-0 mt-1.5 shadow-glow" />
                       )}
                     </div>

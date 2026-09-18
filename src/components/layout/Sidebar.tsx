@@ -9,6 +9,7 @@ import {
   Radio,
   RefreshCw,
   ChevronLeft,
+  ChevronRight,
   LogOut,
 } from "lucide-react";
 import { ViewId } from "@/types/navigation";
@@ -48,7 +49,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   });
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
   const sidebarRef = useRef<HTMLElement>(null);
-  const toggleIconRef = useRef<SVGSVGElement>(null);
   const isFirstMount = useRef(true);
   const hasAnimatedEntrance = useRef(false);
 
@@ -70,25 +70,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
-      // Set initial chevron rotation without transition to match restored collapsed state
-      if (toggleIconRef.current) {
-        gsap.set(toggleIconRef.current, {
-          rotation: isCollapsed ? 180 : 0,
-        });
-      }
       return;
     }
 
-    // 1. Smoothly rotate chevron toggle button 180 degrees
-    if (toggleIconRef.current) {
-      gsap.to(toggleIconRef.current, {
-        rotation: isCollapsed ? 180 : 0,
-        duration: 0.38,
-        ease: "power2.inOut",
-      });
-    }
-
-    // 2. Keep icon transform strictly fixed (zero x/y jitter or horizontal bounce)
+    // Keep icon transform strictly fixed (zero x/y jitter or horizontal bounce)
     gsap.set(".sidebar-nav-icon", { x: 0, y: 0 });
 
     // 3. Smooth vertical glide on navigation items & Core Navigation title
@@ -205,50 +190,71 @@ export const Sidebar: React.FC<SidebarProps> = ({
         isCollapsed ? "w-20" : "w-64"
       )}
     >
-      {/* ── Brand Header (Fixed 72px Height) ── */}
+      {/* ── Brand Header (Fixed 80px Height) ── */}
       <div className="relative h-20 px-3.5 border-b border-aura-border/50 flex items-center shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
-          {/* Logo Box: 100% Fixed at left:14px with sidebar-nav-icon for GSAP wave */}
-          <div className="sidebar-nav-icon w-11 h-11 rounded-xl bg-aura-surface-active border border-aura-primary/30 flex items-center justify-center p-1.5 shadow-glow shrink-0 will-change-transform">
-            <img
-              src="/aura-pod-logo.svg"
-              alt="AURA Pod"
-              className="w-full h-full object-contain"
-            />
-          </div>
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          {/* Logo Box: When collapsed, the logo ITSELF is the toggle button! */}
+          {isCollapsed ? (
+            <button
+              onClick={toggleCollapse}
+              className="sidebar-nav-icon w-11 h-11 rounded-xl bg-aura-surface-active border border-aura-primary/40 hover:border-aura-primary flex items-center justify-center p-1.5 shadow-glow hover:shadow-[0_0_16px_rgba(45,212,191,0.4)] shrink-0 will-change-transform cursor-pointer transition-all group relative"
+              title="Buka Sidebar"
+            >
+              <img
+                src="/aura-pod-logo.svg"
+                alt="AURA Pod - Klik untuk Buka Sidebar"
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+              />
+              {/* Expand hint indicator on hover */}
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-aura-primary text-aura-bg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+                <ChevronRight className="w-2.5 h-2.5 stroke-[3]" />
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={() => onViewChange("overview")}
+              className="sidebar-nav-icon w-11 h-11 rounded-xl bg-aura-surface-active border border-aura-primary/30 hover:border-aura-primary/60 flex items-center justify-center p-1.5 shadow-glow shrink-0 will-change-transform cursor-pointer transition-colors"
+              title="AURA Pod - Ke Overview"
+            >
+              <img
+                src="/aura-pod-logo.svg"
+                alt="AURA Pod"
+                className="w-full h-full object-contain"
+              />
+            </button>
+          )}
 
-          {/* Brand Texts: Smooth fade and collapse without any transform jitter */}
+          {/* Brand Texts & Toggle Button (When open, toggle button appears beside the text) */}
           <div
             className={cn(
-              "flex flex-col transition-[opacity,max-width] duration-300 whitespace-nowrap overflow-hidden",
-              isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[140px]"
+              "flex items-center justify-between transition-[opacity,max-width] duration-300 overflow-hidden flex-1 min-w-0",
+              isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[180px]"
             )}
           >
-            <div className="flex items-center gap-1.5">
-              <span className="font-heading font-bold text-base text-aura-text-primary tracking-tight">
-                AURA Pod
-              </span>
-              <span className="px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider rounded bg-aura-surface-active text-aura-primary border border-aura-primary/30">
-                IoT
+            <div className="flex flex-col whitespace-nowrap overflow-hidden min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-heading font-bold text-base text-aura-text-primary tracking-tight">
+                  AURA Pod
+                </span>
+                <span className="px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider rounded bg-aura-surface-active text-aura-primary border border-aura-primary/30">
+                  IoT
+                </span>
+              </div>
+              <span className="text-[11px] text-aura-text-secondary truncate">
+                Bioreactor Dashboard
               </span>
             </div>
-            <span className="text-[11px] text-aura-text-secondary truncate">
-              Bioreactor Dashboard
-            </span>
+
+            {/* Close Toggle Button: Beside the AURA Pod text when opened */}
+            <button
+              onClick={toggleCollapse}
+              className="w-7 h-7 rounded-lg bg-aura-surface-subtle hover:bg-aura-surface-active border border-aura-border hover:border-aura-primary/40 flex items-center justify-center text-aura-text-secondary hover:text-aura-primary transition-colors cursor-pointer shrink-0 ml-1.5"
+              title="Tutup Sidebar"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
           </div>
         </div>
-
-        {/* Collapse Toggle Button: Mounted to right edge with GSAP rotating chevron */}
-        <button
-          onClick={toggleCollapse}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-aura-surface border border-aura-border shadow-md flex items-center justify-center text-aura-text-secondary hover:text-aura-primary hover:border-aura-primary/50 hover:bg-aura-surface-active cursor-pointer z-50 transition-colors"
-          title={isCollapsed ? "Buka Sidebar" : "Tutup Sidebar"}
-        >
-          <ChevronLeft
-            ref={toggleIconRef}
-            className="w-3.5 h-3.5 text-aura-primary will-change-transform"
-          />
-        </button>
       </div>
 
       {/* ── Navigation Links ── */}

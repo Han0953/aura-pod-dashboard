@@ -153,6 +153,7 @@ export const DashboardPage: React.FC = () => {
           unreadNotificationCount={dashboard.unreadNotificationCount}
           onMarkAllAsRead={dashboard.markAllNotificationsAsRead}
           onClearAllNotifications={dashboard.clearAllNotifications}
+          onDeleteNotification={dashboard.deleteNotification}
         />
 
         {/* Scrollable View Canvas */}

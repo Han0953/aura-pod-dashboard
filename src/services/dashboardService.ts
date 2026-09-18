@@ -88,6 +88,7 @@ export interface DashboardContextType {
   unreadNotificationCount: number;
   markAllNotificationsAsRead: () => void;
   clearAllNotifications: () => void;
+  deleteNotification: (id: string) => void;
   toggleLed: () => void;
   toggleAerator: () => void;
   toggleMode: () => void;
@@ -205,6 +206,14 @@ export function useDashboardData(): DashboardContextType {
   const clearAllNotifications = useCallback(() => {
     setNotifications([]);
     saveStoredNotifications([]);
+  }, []);
+
+  const deleteNotification = useCallback((id: string) => {
+    setNotifications((prev) => {
+      const updated = prev.filter((n) => n.id !== id);
+      saveStoredNotifications(updated);
+      return updated;
+    });
   }, []);
 
   const unreadNotificationCount = useMemo(() => {
@@ -446,6 +455,7 @@ export function useDashboardData(): DashboardContextType {
     unreadNotificationCount,
     markAllNotificationsAsRead,
     clearAllNotifications,
+    deleteNotification,
     toggleLed,
     toggleAerator,
     toggleMode,
