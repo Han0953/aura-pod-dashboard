@@ -52,12 +52,25 @@ export const DashboardPage: React.FC = () => {
     return "overview";
   });
 
+  const mainContentRef = useRef<HTMLElement>(null);
+
   const handleViewChange = useCallback((view: ViewId) => {
     setActiveView(view);
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = 0;
+    }
     try {
       localStorage.setItem("aura_active_view", view);
     } catch {}
   }, []);
+
+  // Ensure scroll position resets to the top whenever active tab changes
+  useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = 0;
+    }
+    window.scrollTo(0, 0);
+  }, [activeView]);
 
   const isFirstMount = useRef(true);
 
@@ -143,7 +156,10 @@ export const DashboardPage: React.FC = () => {
         />
 
         {/* Scrollable View Canvas */}
-        <main className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 transition-colors duration-200 bg-aura-bg">
+        <main
+          ref={mainContentRef}
+          className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 transition-colors duration-200 bg-aura-bg"
+        >
           <div className="max-w-7xl mx-auto">
             {activeView === "overview" && (
               <OverviewView
