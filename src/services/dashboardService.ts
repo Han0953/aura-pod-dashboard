@@ -91,7 +91,8 @@ export interface DashboardContextType {
   toggleLed: () => void;
   toggleAerator: () => void;
   toggleMode: () => void;
-  refreshData: () => void;
+  refreshData: (isManual?: boolean | unknown) => void;
+  manualSyncCount: number;
 }
 
 export function useDashboardData(): DashboardContextType {
@@ -109,6 +110,7 @@ export function useDashboardData(): DashboardContextType {
   const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
   const [lastUpdatedText, setLastUpdatedText] = useState<string>("Menghubungkan ke ESP32...");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [manualSyncCount, setManualSyncCount] = useState<number>(0);
   const isBlynkConfigured = blynkService.isConfigured();
 
   // Live Uptime Ticker (Realtime seconds counter when online)
@@ -238,8 +240,12 @@ export function useDashboardData(): DashboardContextType {
   }, [deviceStatus.online, lastSyncTime]);
 
   // Live Sync with Blynk Cloud REST API (V0 - V4)
-  const refreshData = useCallback(async () => {
-    setIsRefreshing(true);
+  const refreshData = useCallback(async (isManual: boolean | unknown = true) => {
+    const isManualTrigger = typeof isManual === "boolean" ? isManual : true;
+    if (isManualTrigger) {
+      setIsRefreshing(true);
+      setManualSyncCount((prev) => prev + 1);
+    }
     try {
       if (blynkService.isConfigured()) {
         const [isOnline, blynkData] = await Promise.all([
@@ -360,7 +366,9 @@ export function useDashboardData(): DashboardContextType {
       console.warn("[DashboardService] Blynk polling error:", err);
       setDeviceStatus((prev) => ({ ...prev, online: false }));
     } finally {
-      setIsRefreshing(false);
+      if (isManual) {
+        setIsRefreshing(false);
+      }
     }
   }, []);
 
@@ -388,11 +396,11 @@ export function useDashboardData(): DashboardContextType {
     return sensorData;
   }, [deviceStatus.online, sensorData]);
 
-  // Periodic polling
+  // Periodic polling (silent background poll, no UI spin or manual probe trigger)
   useEffect(() => {
-    refreshData();
+    refreshData(false);
     const interval = setInterval(() => {
-      refreshData();
+      refreshData(false);
     }, APP_CONFIG.refreshIntervalMs);
     return () => clearInterval(interval);
   }, [refreshData]);
@@ -442,5 +450,6 @@ export function useDashboardData(): DashboardContextType {
     toggleAerator,
     toggleMode,
     refreshData,
+    manualSyncCount,
   };
 }

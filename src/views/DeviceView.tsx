@@ -73,7 +73,7 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={refreshData}
+            onClick={() => refreshData(true)}
             disabled={isRefreshing}
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-aura-surface-active hover:bg-aura-border/40 text-xs font-semibold text-aura-primary border border-aura-primary/30 transition-colors shadow-glow"
           >
@@ -109,6 +109,9 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
         <HardwareDiagnostics
           diagnostics={diagnostics}
           isOnline={deviceStatus.online}
+          deviceStatus={deviceStatus}
+          sensorData={dashboard.sensorData}
+          manualSyncCount={dashboard.manualSyncCount}
         />
       </div>
     </div>
