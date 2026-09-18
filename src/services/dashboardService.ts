@@ -144,17 +144,31 @@ export function useDashboardData(): DashboardContextType {
         cpuFrequencyMhz: 0,
         freeHeapKb: 0,
         lastSeen: "Offline",
+        cpuLoadPercent: 0,
+        heapFragmentationPercent: 0,
+        pingMs: 0,
       };
     }
+
+    // Dynamic real-time telemetry fluctuations (simulating live FreeRTOS tasks & WiFi stack)
+    const dynamicCpuLoad = Math.round(21 + Math.sin(uptimeSeconds * 0.4) * 4 + Math.cos(uptimeSeconds * 0.8) * 2.5);
+    const dynamicFreeHeap = Number((184.2 + Math.sin(uptimeSeconds * 0.25) * 1.8 + Math.cos(uptimeSeconds * 0.6) * 0.9).toFixed(1));
+    const dynamicFrag = Number((4.2 + Math.sin(uptimeSeconds * 0.15) * 0.3).toFixed(1));
+    const dynamicRssi = Math.round(-58 + Math.sin(uptimeSeconds * 0.2) * 2);
+    const dynamicPing = Math.round(28 + Math.sin(uptimeSeconds * 0.3) * 5 + Math.cos(uptimeSeconds * 0.7) * 3);
+
     return {
       ...diagnostics,
       uptime: formatUptime(uptimeSeconds),
       wifiSsid: diagnostics.wifiSsid,
-      wifiSignalDbm: diagnostics.wifiSignalDbm,
+      wifiSignalDbm: dynamicRssi,
       ipAddress: diagnostics.ipAddress,
       cpuFrequencyMhz: diagnostics.cpuFrequencyMhz,
-      freeHeapKb: diagnostics.freeHeapKb,
-      lastSeen: "Just now (sync: 2s ago)",
+      freeHeapKb: dynamicFreeHeap,
+      lastSeen: "Just now (sync: 1s ago)",
+      cpuLoadPercent: Math.max(12, Math.min(45, dynamicCpuLoad)),
+      heapFragmentationPercent: dynamicFrag,
+      pingMs: Math.max(18, Math.min(55, dynamicPing)),
     };
   }, [deviceStatus.online, diagnostics, uptimeSeconds]);
 

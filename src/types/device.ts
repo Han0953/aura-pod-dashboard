@@ -20,6 +20,9 @@ export interface HardwareDiagnostic {
   cpuFrequencyMhz: number;
   freeHeapKb: number;
   lastSeen: string;
+  cpuLoadPercent?: number;
+  heapFragmentationPercent?: number;
+  pingMs?: number;
 }
 
 export interface PinMapping {
