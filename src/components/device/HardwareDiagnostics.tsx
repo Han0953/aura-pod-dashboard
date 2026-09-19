@@ -5,7 +5,6 @@ import {
   HardDrive,
   Clock,
   CheckCircle2,
-  Activity,
   Radio,
   Terminal,
   Play,
@@ -280,22 +279,6 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
             <div className="text-2xl font-bold text-aura-text-primary font-mono tabular-nums">
               {isOnline ? `${diagnostics.cpuFrequencyMhz} MHz` : "0 MHz"}
             </div>
-            <div className="text-[11px] text-aura-text-secondary">
-              Xtensa Dual-Core LX6
-            </div>
-          </div>
-          <div className="text-[11px] text-aura-primary font-mono flex items-center justify-between pt-1 border-t border-aura-border/40">
-            {isOnline ? (
-              <>
-                <span className="flex items-center gap-1">
-                  <Activity className="w-3 h-3 text-aura-primary animate-pulse" />
-                  <span>Beban Inti: {diagnostics.cpuLoadPercent ?? 21}%</span>
-                </span>
-                <span className="text-[10px] text-aura-text-secondary">Real-time</span>
-              </>
-            ) : (
-              <span className="text-aura-text-secondary">Mikrokontroler Offline</span>
-            )}
           </div>
         </div>
 

@@ -197,8 +197,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {isCollapsed ? (
             <button
               onClick={toggleCollapse}
+              aria-label="Buka Sidebar"
+              title="Klik untuk Buka Sidebar"
               className="sidebar-nav-icon w-11 h-11 rounded-xl bg-aura-surface-active border border-aura-primary/40 hover:border-aura-primary flex items-center justify-center p-1.5 shadow-glow hover:shadow-[0_0_16px_rgba(45,212,191,0.4)] shrink-0 will-change-transform cursor-pointer transition-all group relative"
-              title="Buka Sidebar"
             >
               <img
                 src="/aura-pod-logo.svg"
@@ -248,8 +249,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* Close Toggle Button: Beside the AURA Pod text when opened */}
             <button
               onClick={toggleCollapse}
-              className="w-7 h-7 rounded-lg bg-aura-surface-subtle hover:bg-aura-surface-active border border-aura-border hover:border-aura-primary/40 flex items-center justify-center text-aura-text-secondary hover:text-aura-primary transition-colors cursor-pointer shrink-0 ml-1.5"
+              aria-label="Tutup Sidebar"
               title="Tutup Sidebar"
+              className="w-7 h-7 rounded-lg bg-aura-surface-subtle hover:bg-aura-surface-active border border-aura-border hover:border-aura-primary/40 flex items-center justify-center text-aura-text-secondary hover:text-aura-primary transition-colors cursor-pointer shrink-0 ml-1.5"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -258,7 +260,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* ── Navigation Links ── */}
-      <div className="flex-1 py-4 px-3.5 overflow-y-auto space-y-1.5 overflow-x-hidden">
+      <div
+        className={cn(
+          "flex-1 py-4 px-3.5 space-y-1.5",
+          isCollapsed ? "overflow-visible" : "overflow-y-auto overflow-x-hidden"
+        )}
+      >
         <div
           className={cn(
             "sidebar-section-title text-[10px] font-semibold uppercase tracking-wider text-aura-text-secondary overflow-hidden whitespace-nowrap px-1",
@@ -277,10 +284,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               key={item.id}
               onClick={() => !isDisabled && onViewChange(item.id)}
               disabled={isDisabled}
-              title={isCollapsed ? item.label : undefined}
+              aria-label={item.label}
               className={cn(
-                "sidebar-item-wave h-11 flex items-center justify-start rounded-xl text-sm font-medium transition-[width,background-color,border-color,color] duration-300 ease-in-out group cursor-pointer relative overflow-hidden border",
-                isCollapsed ? "w-11" : "w-full",
+                "sidebar-item-wave h-11 flex items-center justify-start rounded-xl text-sm font-medium transition-[width,background-color,border-color,color] duration-300 ease-in-out group cursor-pointer relative border",
+                isCollapsed ? "w-11 overflow-visible" : "w-full overflow-hidden",
                 isActive
                   ? "sidebar-item-active bg-aura-surface-active text-aura-primary border-aura-primary/40 shadow-glow font-semibold"
                   : isDisabled
@@ -319,6 +326,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="sidebar-nav-badge ml-auto mr-2 text-[10px] px-1.5 py-0.5 rounded-full bg-aura-surface-subtle text-aura-text-secondary font-mono border border-aura-border shrink-0">
                   {item.badge}
                 </span>
+              )}
+
+              {/* Tooltip teks simpel (instan tanpa delay) */}
+              {isCollapsed && (
+                <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 z-50 pointer-events-none invisible group-hover:visible whitespace-nowrap">
+                  <div
+                    className={cn(
+                      "px-2.5 py-1 rounded-md text-xs font-medium select-none shadow-md border",
+                      isActive
+                        ? "bg-aura-surface border-aura-primary/40 text-aura-primary font-semibold"
+                        : "bg-aura-surface border-aura-border text-aura-text-primary"
+                    )}
+                  >
+                    {item.label}
+                  </div>
+                </div>
               )}
             </button>
           );
@@ -421,10 +444,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {onLogout && (
           <button
             onClick={onLogout}
-            title={isCollapsed ? "Keluar Sistem" : undefined}
+            aria-label="Keluar Sistem"
             className={cn(
-              "h-11 flex items-center justify-start rounded-xl text-xs font-medium text-aura-text-secondary hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-[width,background-color,border-color,color] duration-300 ease-in-out cursor-pointer group overflow-hidden",
-              isCollapsed ? "w-11" : "w-full"
+              "h-11 flex items-center justify-start rounded-xl text-xs font-medium text-aura-text-secondary hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-[width,background-color,border-color,color] duration-300 ease-in-out cursor-pointer group relative",
+              isCollapsed ? "w-11 overflow-visible" : "w-full overflow-hidden"
             )}
           >
             {/* Fixed Icon Slot with sidebar-nav-icon for GSAP animation */}
@@ -441,6 +464,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               Keluar Sistem
             </span>
+
+            {/* Tooltip teks simpel (instan tanpa delay) */}
+            {isCollapsed && (
+              <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 z-50 pointer-events-none invisible group-hover:visible whitespace-nowrap">
+                <div className="px-2.5 py-1 rounded-md text-xs font-medium select-none shadow-md border bg-aura-surface border-red-500/30 text-red-400">
+                  Keluar Sistem
+                </div>
+              </div>
+            )}
           </button>
         )}
 

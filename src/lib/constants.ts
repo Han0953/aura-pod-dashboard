@@ -13,19 +13,19 @@ export const APP_CONFIG = {
 export const SENSOR_THRESHOLDS = {
   temperature: {
     min: 18.0,
-    max: 32.0,
-    optimalMin: 22.0,
-    optimalMax: 26.0,
+    max: 35.0,
+    optimalMin: 21.0,
+    optimalMax: 28.5,
     unit: "°C",
-    toleranceStr: "22.0 – 26.0 °C",
+    toleranceStr: "21.0 – 28.5 °C",
   },
   gasIndex: {
-    min: 50,
-    max: 350,
-    optimalMin: 100,
-    optimalMax: 180,
+    min: 0,
+    max: 400,
+    optimalMin: 0,
+    optimalMax: 200,
     unit: "AQI Idx",
-    toleranceStr: "100 – 180 Idx",
+    toleranceStr: "0 – 200 Idx",
   },
 };
 

@@ -53,11 +53,11 @@ export const blynkService = {
       if (!response.ok) return null;
       const data = await response.json();
 
-      const rawTemp = Number(data.v0);
-      const rawGas = Number(data.v1);
-      const rawLed = Number(data.v2);
-      const rawAerator = Number(data.v3);
-      const rawMode = Number(data.v4);
+      const rawTemp = Number(data.v0 !== undefined ? data.v0 : data.V0);
+      const rawGas = Number(data.v1 !== undefined ? data.v1 : data.V1);
+      const rawLed = Number(data.v2 !== undefined ? data.v2 : data.V2);
+      const rawAerator = Number(data.v3 !== undefined ? data.v3 : data.V3);
+      const rawMode = Number(data.v4 !== undefined ? data.v4 : data.V4);
 
       return {
         temperature: !isNaN(rawTemp) ? Number(rawTemp.toFixed(1)) : 24.0,
