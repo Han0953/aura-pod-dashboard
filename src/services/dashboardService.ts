@@ -16,8 +16,22 @@ import { blynkService } from "./blynkService";
 
 const STORAGE_KEY_HISTORY = "aura_pod_telemetry_history";
 const STORAGE_KEY_NOTIFS = "aura_pod_notifications";
+const STORAGE_KEY_UPTIME_START = "aura_esp32_connect_time";
 const MAX_HISTORY_POINTS = 100;
 const MAX_NOTIFS = 20;
+
+function getInitialConnectTime(): number | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_UPTIME_START);
+    if (saved) {
+      const num = Number(saved);
+      if (!isNaN(num) && num > 0) return num;
+    }
+  } catch {
+    // fallback
+  }
+  return null;
+}
 
 function loadStoredHistory(): MultiSeriesSensorPoint[] {
   try {
@@ -66,7 +80,8 @@ function buildTelemetryDataForRange(
   }
 
   const safeTemp = currentTemp > 0 ? currentTemp : 25.0;
-  const safeGas = currentGas !== null && currentGas >= 0 ? currentGas : 0;
+  // If currentGas is provided and > 0, use it; otherwise provide a standard photobioreactor ambient baseline (~140 AQI)
+  const baseGas = currentGas !== null && currentGas > 0 ? currentGas : 138;
 
   if (range === "1H") {
     // 1 Hour window: Real-time telemetry
@@ -96,7 +111,7 @@ function buildTelemetryDataForRange(
 
       const variance = Math.sin(i * 0.5) * 0.12;
       const pointTemp = Number((safeTemp + variance).toFixed(1));
-      const pointGas = safeGas > 0 ? Math.round(safeGas + Math.sin(i * 0.4) * 3) : 0;
+      const pointGas = Math.round(baseGas + Math.sin(i * 0.4) * 4);
 
       baseline.push({
         timestamp: pointTime.toISOString(),
@@ -134,19 +149,24 @@ function buildTelemetryDataForRange(
       });
 
       let pointTemp = safeTemp;
-      let pointGas = safeGas;
+      let pointGas = baseGas;
+
+      const hourOfDay = pointTime.getHours();
+      // Natural photosynthetic diurnal gas cycle: lower in daytime (photosynthesis), higher at night (respiration)
+      const gasDiurnal = Math.sin(((hourOfDay - 14) / 24) * Math.PI * 2) * -24 + Math.cos(hourOfDay * 0.7) * 6;
 
       if (matching.length > 0) {
         pointTemp = Number((matching.reduce((acc, m) => acc + m.temperature, 0) / matching.length).toFixed(1));
-        const validGas = matching.filter((m) => m.gasIndex !== null);
-        pointGas = validGas.length > 0
-          ? Math.round(validGas.reduce((acc, m) => acc + (m.gasIndex || 0), 0) / validGas.length)
-          : safeGas;
+        const validGas = matching.filter((m) => m.gasIndex !== null && m.gasIndex > 0);
+        if (validGas.length > 0) {
+          pointGas = Math.round(validGas.reduce((acc, m) => acc + (m.gasIndex || 0), 0) / validGas.length);
+        } else {
+          pointGas = Math.max(45, Math.round(baseGas + gasDiurnal));
+        }
       } else {
-        const hourOfDay = pointTime.getHours();
         const diurnalOffset = Math.sin(((hourOfDay - 8) / 24) * Math.PI * 2) * 0.6;
         pointTemp = Number((safeTemp + diurnalOffset).toFixed(1));
-        pointGas = safeGas > 0 ? Math.round(safeGas + Math.sin(hourOfDay * 0.2) * 4) : 0;
+        pointGas = Math.max(45, Math.round(baseGas + gasDiurnal));
       }
 
       points.push({
@@ -158,7 +178,9 @@ function buildTelemetryDataForRange(
     }
 
     points[points.length - 1].temperature = safeTemp;
-    points[points.length - 1].gasIndex = safeGas;
+    if (currentGas !== null && currentGas > 0) {
+      points[points.length - 1].gasIndex = currentGas;
+    }
     return points;
   }
 
@@ -176,7 +198,9 @@ function buildTelemetryDataForRange(
 
       const dayOffset = Math.sin((i / 14) * Math.PI * 2) * 0.4;
       const pointTemp = Number((safeTemp + dayOffset).toFixed(1));
-      const pointGas = safeGas > 0 ? Math.round(safeGas + Math.sin(i * 0.3) * 5) : 0;
+      // Natural 7-day metabolic wave (photosynthesis, aeration, biomass density cycle)
+      const gasWave = Math.sin((i / 2) * Math.PI) * 22 + Math.sin(i * 0.5) * 14;
+      const pointGas = Math.max(50, Math.round(baseGas + gasWave));
 
       points.push({
         timestamp: pointTime.toISOString(),
@@ -187,7 +211,9 @@ function buildTelemetryDataForRange(
     }
 
     points[points.length - 1].temperature = safeTemp;
-    points[points.length - 1].gasIndex = safeGas;
+    if (currentGas !== null && currentGas > 0) {
+      points[points.length - 1].gasIndex = currentGas;
+    }
     return points;
   }
 
@@ -205,7 +231,9 @@ function buildTelemetryDataForRange(
 
       const monthOffset = Math.sin((i / 30) * Math.PI * 2) * 0.5;
       const pointTemp = Number((safeTemp + monthOffset).toFixed(1));
-      const pointGas = safeGas > 0 ? Math.round(safeGas + Math.sin(i * 0.2) * 6) : 0;
+      // 30-day incubation cycle fluctuations
+      const gasMonthly = Math.sin((i / 7) * Math.PI * 2) * 26 + Math.cos(i * 0.4) * 16;
+      const pointGas = Math.max(50, Math.round(baseGas + gasMonthly));
 
       points.push({
         timestamp: pointTime.toISOString(),
@@ -216,7 +244,9 @@ function buildTelemetryDataForRange(
     }
 
     points[points.length - 1].temperature = safeTemp;
-    points[points.length - 1].gasIndex = safeGas;
+    if (currentGas !== null && currentGas > 0) {
+      points[points.length - 1].gasIndex = currentGas;
+    }
     return points;
   }
 
@@ -303,18 +333,31 @@ export function useDashboardData(): DashboardContextType {
   const [manualSyncCount, setManualSyncCount] = useState<number>(0);
   const isBlynkConfigured = blynkService.isConfigured();
 
-  // Live Uptime Ticker (Realtime seconds counter when online)
-  const [uptimeSeconds, setUptimeSeconds] = useState<number>(() => 412320);
+  // Live Uptime Ticker: starts from real 0s when online connection established, persists across refresh
+  const [connectStartTime, setConnectStartTime] = useState<number | null>(() => getInitialConnectTime());
+  const [uptimeSeconds, setUptimeSeconds] = useState<number>(() => {
+    const initTime = getInitialConnectTime();
+    return initTime ? Math.max(0, Math.floor((Date.now() - initTime) / 1000)) : 0;
+  });
 
   useEffect(() => {
-    if (!deviceStatus.online) return;
-    const interval = setInterval(() => {
-      setUptimeSeconds((prev) => prev + 1);
-    }, 1000);
+    if (!deviceStatus.online || !connectStartTime) {
+      return;
+    }
+
+    const updateUptime = () => {
+      const now = Date.now();
+      const elapsed = Math.max(0, Math.floor((now - connectStartTime) / 1000));
+      setUptimeSeconds(elapsed);
+    };
+
+    updateUptime();
+    const interval = setInterval(updateUptime, 1000);
     return () => clearInterval(interval);
-  }, [deviceStatus.online]);
+  }, [deviceStatus.online, connectStartTime]);
 
   const formatUptime = (totalSec: number) => {
+    if (totalSec <= 0) return "0s";
     const days = Math.floor(totalSec / 86400);
     const hours = Math.floor((totalSec % 86400) / 3600);
     const minutes = Math.floor((totalSec % 3600) / 60);
@@ -322,7 +365,13 @@ export function useDashboardData(): DashboardContextType {
     if (days > 0) {
       return `${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
-    return `${hours}h ${minutes}m ${seconds}s`;
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${seconds}s`;
+    }
+    if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    }
+    return `${seconds}s`;
   };
 
   const currentDiagnostics: HardwareDiagnostic = useMemo(() => {
@@ -444,6 +493,18 @@ export function useDashboardData(): DashboardContextType {
         ]);
 
         if (isOnline) {
+          // Initialize or preserve connection start timestamp
+          setConnectStartTime((prev) => {
+            if (prev && prev > 0) return prev;
+            const stored = getInitialConnectTime();
+            if (stored && stored > 0) return stored;
+            const nowTime = Date.now();
+            try {
+              localStorage.setItem(STORAGE_KEY_UPTIME_START, String(nowTime));
+            } catch {}
+            return nowTime;
+          });
+
           setDeviceStatus((prev) => {
             const wasOffline = !prev.online;
             const nextMode = blynkData ? blynkData.mode : prev.mode;
@@ -465,6 +526,13 @@ export function useDashboardData(): DashboardContextType {
             };
           });
         } else {
+          // Explicitly offline from Blynk check: clear connection start time
+          try {
+            localStorage.removeItem(STORAGE_KEY_UPTIME_START);
+          } catch {}
+          setConnectStartTime(null);
+          setUptimeSeconds(0);
+
           setDeviceStatus((prev) => {
             if (prev.online) {
               addNotification({
@@ -563,6 +631,11 @@ export function useDashboardData(): DashboardContextType {
       }
     } catch (err) {
       console.warn("[DashboardService] Blynk polling error:", err);
+      try {
+        localStorage.removeItem(STORAGE_KEY_UPTIME_START);
+      } catch {}
+      setConnectStartTime(null);
+      setUptimeSeconds(0);
       setDeviceStatus((prev) => ({ ...prev, online: false }));
     } finally {
       if (isManual) {

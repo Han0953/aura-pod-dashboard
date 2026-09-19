@@ -149,12 +149,16 @@ export const SensorChart: React.FC<SensorChartProps> = ({
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
-            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+            margin={{ top: 10, right: 15, left: -10, bottom: 0 }}
           >
             <defs>
               <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={tempColor} stopOpacity={0.25} />
                 <stop offset="95%" stopColor={tempColor} stopOpacity={0.0} />
+              </linearGradient>
+              <linearGradient id="colorGas" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={gasColor} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={gasColor} stopOpacity={0.0} />
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -169,26 +173,55 @@ export const SensorChart: React.FC<SensorChartProps> = ({
               tickLine={false}
               axisLine={{ stroke: gridColor }}
             />
+            {/* Left Y-Axis: Culture Temperature (°C) */}
             <YAxis
-              stroke={axisTextColor}
+              yAxisId="left"
+              orientation="left"
+              stroke={tempColor}
               fontSize={11}
               tickLine={false}
               axisLine={{ stroke: gridColor }}
-              domain={[0, (dataMax: number) => (dataMax <= 5 ? 30 : Math.ceil(dataMax + 2))]}
+              domain={[0, (dataMax: number) => (dataMax <= 5 ? 35 : Math.ceil(dataMax + 2))]}
+              unit="°C"
+            />
+            {/* Right Y-Axis: Gas Index (AQI) */}
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              stroke={gasColor}
+              fontSize={11}
+              tickLine={false}
+              axisLine={{ stroke: gridColor }}
+              domain={[0, (dataMax: number) => (dataMax <= 20 ? 250 : Math.ceil(dataMax + 30))]}
+              unit=" AQI"
             />
             <Tooltip content={<CustomTooltip isDark={isDark} />} />
 
-              {/* Temperature Line & Area */}
-              <Area
-                type="monotone"
-                dataKey="temperature"
-                stroke={tempColor}
-                strokeWidth={2.5}
-                fillOpacity={1}
-                fill="url(#colorTemp)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+            {/* Temperature Line & Area (Left Y-Axis) */}
+            <Area
+              yAxisId="left"
+              type="monotone"
+              dataKey="temperature"
+              name="temperature"
+              stroke={tempColor}
+              strokeWidth={2.5}
+              fillOpacity={1}
+              fill="url(#colorTemp)"
+            />
+
+            {/* Gas Index Line & Area (Right Y-Axis) */}
+            <Area
+              yAxisId="right"
+              type="monotone"
+              dataKey="gasIndex"
+              name="gasIndex"
+              stroke={gasColor}
+              strokeWidth={2.5}
+              fillOpacity={1}
+              fill="url(#colorGas)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Interactive Legend Matrix with Live Values */}
@@ -214,7 +247,7 @@ export const SensorChart: React.FC<SensorChartProps> = ({
           <span className="text-aura-text-secondary">
             Gas Index (MQ-135):{" "}
             <span className="text-aura-text-primary font-mono font-bold tabular-nums">
-              {currentGas !== null && currentGas > 0 ? `${currentGas} AQI` : "--"}
+              {currentGas !== null && currentGas >= 0 ? `${currentGas} AQI` : "--"}
             </span>
           </span>
         </div>

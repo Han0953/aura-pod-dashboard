@@ -4,8 +4,6 @@ import {
   Wifi,
   HardDrive,
   Clock,
-  CheckCircle2,
-  Radio,
   Terminal,
   Play,
   RefreshCw,
@@ -57,10 +55,6 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
   sensorData,
   manualSyncCount = 0,
 }) => {
-  const signalPercent = isOnline
-    ? Math.min(100, Math.max(0, Math.round(2 * ((diagnostics.wifiSignalDbm || -58) + 100))))
-    : 0;
-
   const [logs, setLogs] = useState<ConsoleLog[]>(() => getInitialLogs(isOnline));
   const [isRunningSelfTest, setIsRunningSelfTest] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -263,11 +257,11 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Grid: SoC Core Metrics (Realtime Stream) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Metric 1: SoC & Clock */}
-        <div className="p-4 rounded-xl bg-aura-surface border border-aura-border flex flex-col justify-between shadow-sm relative overflow-hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Metric 1: MCU Clock Speed */}
+        <div className="p-5 rounded-2xl bg-aura-surface border border-aura-border flex flex-col justify-between shadow-sm relative overflow-hidden transition-colors">
           <div className="flex items-center justify-between text-aura-text-secondary">
-            <span className="text-xs font-mono uppercase">MCU Clock Speed</span>
+            <span className="text-xs font-mono uppercase tracking-wider">MCU Clock Speed</span>
             <div className="flex items-center gap-1.5">
               {isOnline && (
                 <span className="w-1.5 h-1.5 rounded-full bg-aura-primary animate-pulse" />
@@ -275,17 +269,17 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
               <Cpu className="w-4 h-4 text-aura-primary" />
             </div>
           </div>
-          <div className="my-2">
-            <div className="text-2xl font-bold text-aura-text-primary font-mono tabular-nums">
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold text-aura-text-primary font-mono tabular-nums">
               {isOnline ? `${diagnostics.cpuFrequencyMhz} MHz` : "0 MHz"}
             </div>
           </div>
         </div>
 
         {/* Metric 2: Memory / Free Heap */}
-        <div className="p-4 rounded-xl bg-aura-surface border border-aura-border flex flex-col justify-between shadow-sm relative overflow-hidden">
+        <div className="p-5 rounded-2xl bg-aura-surface border border-aura-border flex flex-col justify-between shadow-sm relative overflow-hidden transition-colors">
           <div className="flex items-center justify-between text-aura-text-secondary">
-            <span className="text-xs font-mono uppercase">SRAM Free Heap</span>
+            <span className="text-xs font-mono uppercase tracking-wider">SRAM Free Heap</span>
             <div className="flex items-center gap-1.5">
               {isOnline && (
                 <span className="w-1.5 h-1.5 rounded-full bg-aura-cyan animate-pulse" />
@@ -293,35 +287,17 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
               <HardDrive className="w-4 h-4 text-aura-cyan" />
             </div>
           </div>
-          <div className="my-2">
-            <div className="text-2xl font-bold text-aura-text-primary font-mono tabular-nums">
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold text-aura-text-primary font-mono tabular-nums">
               {isOnline ? `${diagnostics.freeHeapKb} KB` : "0 KB"}
             </div>
-            <div className="text-[11px] text-aura-text-secondary">
-              {isOnline
-                ? `Fragmentasi Heap: ${diagnostics.heapFragmentationPercent ?? 4.2}%`
-                : "Fragmentasi Heap: --"}
-            </div>
-          </div>
-          <div className="text-[11px] text-aura-cyan font-mono flex items-center justify-between pt-1 border-t border-aura-border/40">
-            {isOnline ? (
-              <>
-                <span className="flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3 text-aura-cyan" />
-                  <span>57.5% Bebas</span>
-                </span>
-                <span className="text-[10px] text-aura-text-secondary">Dinamis RTOS</span>
-              </>
-            ) : (
-              <span className="text-aura-text-secondary">Memori Tidak Terbaca</span>
-            )}
           </div>
         </div>
 
         {/* Metric 3: Wi-Fi RSSI Signal */}
-        <div className="p-4 rounded-xl bg-aura-surface border border-aura-border flex flex-col justify-between shadow-sm relative overflow-hidden">
+        <div className="p-5 rounded-2xl bg-aura-surface border border-aura-border flex flex-col justify-between shadow-sm relative overflow-hidden transition-colors">
           <div className="flex items-center justify-between text-aura-text-secondary">
-            <span className="text-xs font-mono uppercase">Wi-Fi RSSI Link</span>
+            <span className="text-xs font-mono uppercase tracking-wider">Wi-Fi RSSI Link</span>
             <div className="flex items-center gap-1.5">
               {isOnline && (
                 <span className="w-1.5 h-1.5 rounded-full bg-aura-primary animate-pulse" />
@@ -329,38 +305,17 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
               <Wifi className="w-4 h-4 text-aura-primary" />
             </div>
           </div>
-          <div className="my-2">
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-aura-text-primary font-mono tabular-nums">
-                {isOnline ? `${diagnostics.wifiSignalDbm} dBm` : "--"}
-              </span>
-              <span
-                className={cn(
-                  "text-xs font-semibold",
-                  isOnline ? "text-aura-primary" : "text-aura-text-secondary"
-                )}
-              >
-                {isOnline ? `Baik (${signalPercent}%)` : "Terputus"}
-              </span>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold text-aura-text-primary font-mono tabular-nums">
+              {isOnline ? `${diagnostics.wifiSignalDbm} dBm` : "--"}
             </div>
-            <div className="text-[11px] text-aura-text-secondary truncate">
-              {isOnline
-                ? `SSID: ${diagnostics.wifiSsid} · ${diagnostics.pingMs ?? 28}ms`
-                : `SSID: ${diagnostics.wifiSsid}`}
-            </div>
-          </div>
-          <div className="text-[11px] text-aura-text-secondary font-mono flex items-center justify-between pt-1 border-t border-aura-border/40">
-            <span>IP: {isOnline ? diagnostics.ipAddress : "--"}</span>
-            {isOnline && (
-              <span className="text-[10px] text-aura-primary">Ping Live</span>
-            )}
           </div>
         </div>
 
         {/* Metric 4: System Uptime */}
-        <div className="p-4 rounded-xl bg-aura-surface border border-aura-border flex flex-col justify-between shadow-sm relative overflow-hidden">
+        <div className="p-5 rounded-2xl bg-aura-surface border border-aura-border flex flex-col justify-between shadow-sm relative overflow-hidden transition-colors">
           <div className="flex items-center justify-between text-aura-text-secondary">
-            <span className="text-xs font-mono uppercase">System Uptime</span>
+            <span className="text-xs font-mono uppercase tracking-wider">System Uptime</span>
             <div className="flex items-center gap-1.5">
               {isOnline && (
                 <span className="w-1.5 h-1.5 rounded-full bg-aura-amber animate-pulse" />
@@ -368,26 +323,10 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
               <Clock className="w-4 h-4 text-aura-amber" />
             </div>
           </div>
-          <div className="my-2">
-            <div className="text-2xl font-bold text-aura-text-primary font-mono tabular-nums">
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold text-aura-text-primary font-mono tabular-nums">
               {isOnline ? diagnostics.uptime : "--"}
             </div>
-            <div className="text-[11px] text-aura-text-secondary">
-              {isOnline ? "Nol reset pengawas (watchdog)" : "Perangkat tidak aktif"}
-            </div>
-          </div>
-          <div className="text-[11px] text-aura-amber font-mono flex items-center justify-between pt-1 border-t border-aura-border/40">
-            {isOnline ? (
-              <>
-                <span className="flex items-center gap-1">
-                  <Radio className="w-3 h-3 text-aura-amber animate-pulse" />
-                  <span>Detik Aktif</span>
-                </span>
-                <span className="text-[10px] text-aura-text-secondary">{diagnostics.lastSeen}</span>
-              </>
-            ) : (
-              <span className="text-aura-text-secondary">Perangkat Offline</span>
-            )}
           </div>
         </div>
       </div>
