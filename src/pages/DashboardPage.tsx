@@ -12,6 +12,10 @@ import { SettingsView } from "@/views/SettingsView";
 import { useDashboardData } from "@/services/dashboardService";
 import { ViewId } from "@/types/navigation";
 
+import { MobileHeader } from "@/components/layout/MobileHeader";
+import { MobileDockBar } from "@/components/layout/MobileDockBar";
+import { MobileSwipeContainer } from "@/components/layout/MobileSwipeContainer";
+
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -53,11 +57,15 @@ export const DashboardPage: React.FC = () => {
   });
 
   const mainContentRef = useRef<HTMLElement>(null);
+  const mobileMainRef = useRef<HTMLElement>(null);
 
   const handleViewChange = useCallback((view: ViewId) => {
     setActiveView(view);
     if (mainContentRef.current) {
       mainContentRef.current.scrollTop = 0;
+    }
+    if (mobileMainRef.current) {
+      mobileMainRef.current.scrollTop = 0;
     }
     try {
       localStorage.setItem("aura_active_view", view);
@@ -68,6 +76,9 @@ export const DashboardPage: React.FC = () => {
   useEffect(() => {
     if (mainContentRef.current) {
       mainContentRef.current.scrollTop = 0;
+    }
+    if (mobileMainRef.current) {
+      mobileMainRef.current.scrollTop = 0;
     }
     window.scrollTo(0, 0);
   }, [activeView]);
@@ -134,9 +145,42 @@ export const DashboardPage: React.FC = () => {
     handleViewChange("device");
   }, [handleViewChange]);
 
+  const mobileViews = [
+    {
+      id: "overview" as ViewId,
+      component: (
+        <OverviewView
+          dashboard={dashboard}
+          onNavigateToDevice={handleNavigateToDevice}
+          isEntrance={isEntrance}
+        />
+      ),
+    },
+    {
+      id: "monitoring" as ViewId,
+      component: <MonitoringView dashboard={dashboard} />,
+    },
+    {
+      id: "assistant" as ViewId,
+      component: <BioAssistantView dashboard={dashboard} />,
+    },
+    {
+      id: "device" as ViewId,
+      component: <DeviceView dashboard={dashboard} />,
+    },
+    {
+      id: "analytics" as ViewId,
+      component: <AnalyticsView dashboard={dashboard} />,
+    },
+    {
+      id: "settings" as ViewId,
+      component: <SettingsView dashboard={dashboard} onViewChange={handleViewChange} />,
+    },
+  ];
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-aura-bg text-aura-text-primary">
-      {/* Collapsible Left Sidebar */}
+      {/* Collapsible Left Sidebar (Desktop Only) */}
       <Sidebar
         activeView={activeView}
         onViewChange={handleViewChange}
@@ -149,8 +193,8 @@ export const DashboardPage: React.FC = () => {
         onLogout={handleLogout}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      {/* ── DESKTOP MAIN CONTENT AREA (Hidden on Mobile) ── */}
+      <div className="hidden md:flex flex-1 flex-col min-w-0 h-screen overflow-hidden">
         {/* Topbar Header */}
         <Topbar
           activeView={activeView}
@@ -197,6 +241,37 @@ export const DashboardPage: React.FC = () => {
             )}
           </div>
         </main>
+      </div>
+
+      {/* ── MOBILE APP LAYOUT WITH DOCK BAR & SWIPE/PEEK CONTAINER (Hidden on Desktop) ── */}
+      <div className="flex md:hidden flex-1 flex-col min-w-0 h-screen overflow-hidden relative">
+        <MobileHeader
+          activeView={activeView}
+          lastUpdatedText={dashboard.lastUpdatedText}
+          isEspOnline={dashboard.deviceStatus.online}
+          onRefresh={dashboard.refreshData}
+          isRefreshing={dashboard.isRefreshing}
+          notifications={dashboard.notifications}
+          unreadNotificationCount={dashboard.unreadNotificationCount}
+          onMarkAllAsRead={dashboard.markAllNotificationsAsRead}
+          onClearAllNotifications={dashboard.clearAllNotifications}
+          onDeleteNotification={dashboard.deleteNotification}
+          onNavigateToSettings={() => handleViewChange("settings")}
+          onLogout={handleLogout}
+        />
+
+        <main ref={mobileMainRef} className="flex-1 overflow-y-auto pt-16 pb-6">
+          <MobileSwipeContainer
+            activeView={activeView}
+            onViewChange={handleViewChange}
+            views={mobileViews}
+          />
+        </main>
+
+        <MobileDockBar
+          activeView={activeView}
+          onViewChange={handleViewChange}
+        />
       </div>
     </div>
   );

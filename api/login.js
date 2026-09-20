@@ -1,4 +1,18 @@
 export default function handler(req, res) {
+  // Helper polyfills for local Node/Connect dev server
+  if (!res.status) {
+    res.status = function(code) {
+      res.statusCode = code;
+      return res;
+    };
+  }
+  if (!res.json) {
+    res.json = function(data) {
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify(data));
+      return res;
+    };
+  }
   // CORS & Security Headers
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -24,8 +38,10 @@ export default function handler(req, res) {
     const { username, password } = req.body || {};
 
     // Kredensial rahasia sisi server Vercel (disetel di Vercel Dashboard Environment Variables)
-    const EXPECTED_USER = (process.env.AUTH_USERNAME || "admin").trim().toLowerCase();
-    const EXPECTED_PASS = (process.env.AUTH_PASSWORD || "aurapod2026").trim();
+    const rawUser = process.env.AUTH_USERNAME;
+    const rawPass = process.env.AUTH_PASSWORD;
+    const EXPECTED_USER = (rawUser && rawUser !== "undefined" ? rawUser : "admin").trim().toLowerCase();
+    const EXPECTED_PASS = (rawPass && rawPass !== "undefined" ? rawPass : "aurapod2026").trim();
 
     const inputUser = (username || "").trim().toLowerCase();
     const inputPass = (password || "").trim();

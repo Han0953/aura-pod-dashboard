@@ -110,7 +110,21 @@ export const BioAssistantView: React.FC<BioAssistantViewProps> = ({ dashboard })
   const currentGas = isOnline ? (sensorData?.gasIndex ?? null) : null;
   const uptime = isOnline ? (diagnostics?.uptime ?? "0h 0m 0s") : "0s (Offline)";
 
+  const STORAGE_KEY = "aura_aira_chat_history";
+
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // Fallback jika localStorage diblokir atau error parsing
+    }
+
     return [
       {
         id: "msg-init",
@@ -136,6 +150,18 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
       },
     ];
   });
+
+  // Simpan riwayat chat ke localStorage secara otomatis setiap kali ada pesan baru
+  useEffect(() => {
+    try {
+      if (messages.length > 0) {
+        // Simpan 80 pesan terakhir agar performa browser tetap optimal
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-80)));
+      }
+    } catch {
+      // Abaikan jika quota localStorage penuh atau browser dalam mode restricted
+    }
+  }, [messages]);
 
   const [inputPrompt, setInputPrompt] = useState("");
   const [isThinking, setIsThinking] = useState(false);
@@ -226,6 +252,12 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
   };
 
   const handleResetChat = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Abaikan jika ada pembatasan localStorage
+    }
+
     setMessages([
       {
         id: `msg-${Date.now()}`,
@@ -392,7 +424,7 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
       </div>
 
       {/* ── 3. Chat Console Box ── */}
-      <div className="assistant-stagger-item rounded-2xl bg-aura-surface border border-aura-border shadow-card overflow-hidden flex flex-col h-[560px]">
+      <div className="assistant-stagger-item rounded-2xl bg-aura-surface border border-aura-border shadow-card overflow-hidden flex flex-col h-[500px] sm:h-[560px] md:h-[600px]">
         {/* Messages Container */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {messages.map((msg) => {

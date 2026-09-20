@@ -80,9 +80,31 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   };
 
   return (
-    <div ref={containerRef} className="space-y-6 pb-12">
+    <div ref={containerRef} className="space-y-4 sm:space-y-6 pb-12">
+      {/* Mobile Operator Context (Stitch Inspired - Hidden on Desktop) */}
+      <div className="md:hidden flex flex-col gap-2 pt-1">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-heading text-lg font-bold text-aura-text-primary tracking-tight">
+              Selamat Bertugas, Rehan
+            </h2>
+            <p className="text-xs text-aura-text-secondary flex items-center gap-1.5 mt-0.5">
+              <span>AURA Pod Telemetry</span>
+              <span className="w-1 h-1 rounded-full bg-aura-text-secondary/60" />
+              <span className="text-aura-primary font-medium">Zone Alpha</span>
+            </p>
+          </div>
+          <div className="px-2.5 py-1 rounded-full bg-aura-surface-active border border-aura-primary/30 flex items-center gap-1.5 shrink-0 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-aura-primary animate-pulse shadow-glow" />
+            <span className="text-[10px] font-mono font-semibold text-aura-primary uppercase">
+              {isOffline ? "ESP Offline" : "Blynk Synced"}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* ROW 1: 3 Key Telemetry & Actuator Bento Cards */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
         {/* Card 1: DS18B20 Temperature */}
         <div className="dashboard-stagger-card">
           <SensorCard

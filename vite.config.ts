@@ -1,15 +1,17 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import geminiHandler from './api/gemini.js';
+import loginHandler from './api/login.js';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  // Inject env vars to process.env for serverless handlers
-  process.env.GEMINI_API_KEY = env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-  process.env.GEMINI_MODEL = env.GEMINI_MODEL || process.env.GEMINI_MODEL;
-  process.env.AUTH_USERNAME = env.AUTH_USERNAME || process.env.AUTH_USERNAME;
-  process.env.AUTH_PASSWORD = env.AUTH_PASSWORD || process.env.AUTH_PASSWORD;
+  // Inject env vars to process.env for serverless handlers (only if defined)
+  if (env.GEMINI_API_KEY) process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
+  if (env.GEMINI_MODEL) process.env.GEMINI_MODEL = env.GEMINI_MODEL;
+  if (env.AUTH_USERNAME) process.env.AUTH_USERNAME = env.AUTH_USERNAME;
+  if (env.AUTH_PASSWORD) process.env.AUTH_PASSWORD = env.AUTH_PASSWORD;
 
   return {
     plugins: [
@@ -18,6 +20,22 @@ export default defineConfig(({ mode }) => {
         name: 'api-serverless-dev-middleware',
         configureServer(server) {
           server.middlewares.use(async (req, res, next) => {
+            // Polyfill Express-like methods for Connect middleware
+            const response = res as any;
+            if (!response.status) {
+              response.status = function (code: number) {
+                response.statusCode = code;
+                return response;
+              };
+            }
+            if (!response.json) {
+              response.json = function (data: any) {
+                response.setHeader('Content-Type', 'application/json');
+                response.end(JSON.stringify(data));
+                return response;
+              };
+            }
+
             if (req.url && req.url.startsWith('/api/gemini')) {
               try {
                 let body = '';
@@ -30,8 +48,6 @@ export default defineConfig(({ mode }) => {
                   } catch {
                     req.body = {};
                   }
-                  const geminiModule = await import('./api/gemini.js');
-                  const geminiHandler = geminiModule.default;
                   await geminiHandler(req, res);
                 });
                 return;
@@ -56,8 +72,6 @@ export default defineConfig(({ mode }) => {
                   } catch {
                     req.body = {};
                   }
-                  const loginModule = await import('./api/login.js');
-                  const loginHandler = loginModule.default;
                   loginHandler(req, res);
                 });
                 return;

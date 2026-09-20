@@ -189,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       ref={sidebarRef}
       className={cn(
-        "h-screen bg-aura-surface border-r border-aura-border flex flex-col justify-between shrink-0 select-none z-30 sidebar-expand-transition relative",
+        "hidden md:flex h-screen bg-aura-surface border-r border-aura-border flex-col justify-between shrink-0 select-none z-30 sidebar-expand-transition relative",
         isCollapsed ? "w-20" : "w-64"
       )}
     >

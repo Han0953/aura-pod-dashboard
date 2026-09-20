@@ -6,8 +6,10 @@ import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
 
 // Kredensial Resmi AURA Pod (dapat di-override via Environment Variables saat hosting)
-const AUTH_USERNAME = (import.meta.env.VITE_AUTH_USERNAME || "admin").trim().toLowerCase();
-const AUTH_PASSWORD = (import.meta.env.VITE_AUTH_PASSWORD || "aurapod2026").trim();
+const rawUser = import.meta.env.VITE_AUTH_USERNAME;
+const rawPass = import.meta.env.VITE_AUTH_PASSWORD;
+const AUTH_USERNAME = (rawUser && rawUser !== "undefined" ? rawUser : "admin").trim().toLowerCase();
+const AUTH_PASSWORD = (rawPass && rawPass !== "undefined" ? rawPass : "aurapod2026").trim();
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
