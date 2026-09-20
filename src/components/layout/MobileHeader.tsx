@@ -158,7 +158,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
 
   return (
     <>
-      <header className="fixed top-0 inset-x-0 z-40 bg-aura-surface/85 backdrop-blur-xl border-b border-aura-border/60 pt-safe transition-colors duration-200">
+      <header className="fixed top-0 inset-x-0 z-40 bg-aura-surface/85 backdrop-blur-xl pt-safe transition-colors duration-200">
         <div className="h-16 px-4 flex items-center justify-between gap-3">
           {/* Brand & Subtitle / Online Badge */}
           <div className="flex items-center gap-2.5 min-w-0">
@@ -223,17 +223,9 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               type="button"
               onClick={openProfile}
               aria-label="Menu Pengguna & Pengaturan"
-              className="w-9 h-9 rounded-full bg-aura-surface-active border border-aura-primary/40 flex items-center justify-center overflow-hidden transition-all active:scale-95 shadow-sm"
+              className="w-9 h-9 rounded-full bg-gradient-to-tr from-aura-surface-active to-aura-surface-subtle hover:to-aura-surface-active border border-aura-border hover:border-aura-primary/50 flex items-center justify-center text-aura-primary transition-all active:scale-95 shadow-sm"
             >
-              <img
-                src="/aira.webp"
-                alt="Operator"
-                className="w-full h-full object-cover object-top"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-              <User className="w-4 h-4 text-aura-primary" />
+              <User className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -365,16 +357,8 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             {/* User Profile Info */}
             <div className="flex items-center justify-between pb-3 border-b border-aura-border/60">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-aura-surface-active border-2 border-aura-primary/40 flex items-center justify-center overflow-hidden shadow-glow">
-                  <img
-                    src="/aira.webp"
-                    alt="Rehan"
-                    className="w-full h-full object-cover object-top"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
-                  <User className="w-6 h-6 text-aura-primary" />
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-aura-surface-active via-aura-surface to-aura-primary/10 border-2 border-aura-primary/40 flex items-center justify-center shadow-glow text-aura-primary">
+                  <User className="w-6 h-6" />
                 </div>
                 <div>
                   <h4 className="font-heading font-bold text-base text-aura-text-primary">

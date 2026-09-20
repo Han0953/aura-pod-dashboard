@@ -15,40 +15,7 @@ interface MobileDockBarProps {
   onViewChange: (view: ViewId) => void;
 }
 
-interface NormalTab {
-  id: ViewId;
-  label: string;
-  icon: React.ReactNode;
-  centerX: number; // Posisi X tengah dalam viewBox 360
-}
-
-// 4 Tab Normal (AIRA berada di tengah sebagai floating orb yang hanya bisa dibuka dengan klik langsung)
-const NORMAL_TABS: NormalTab[] = [
-  {
-    id: "overview",
-    label: "Overview",
-    icon: <LayoutDashboard className="w-5 h-5" />,
-    centerX: 44,
-  },
-  {
-    id: "monitoring",
-    label: "Telemetry",
-    icon: <Activity className="w-5 h-5" />,
-    centerX: 104,
-  },
-  {
-    id: "device",
-    label: "Device",
-    icon: <Cpu className="w-5 h-5" />,
-    centerX: 256,
-  },
-  {
-    id: "analytics",
-    label: "Analytics",
-    icon: <BarChart3 className="w-5 h-5" />,
-    centerX: 316,
-  },
-];
+const NORMAL_TAB_IDS: ViewId[] = ["overview", "monitoring", "device", "analytics"];
 
 export const MobileDockBar: React.FC<MobileDockBarProps> = ({
   activeView,
@@ -56,6 +23,7 @@ export const MobileDockBar: React.FC<MobileDockBarProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLDivElement>(null);
+  const tabButtonRefs = useRef<{ [key in ViewId]?: HTMLButtonElement | null }>({});
   const [isDragging, setIsDragging] = useState(false);
   const [dragHoverTab, setDragHoverTab] = useState<ViewId | null>(null);
 
@@ -68,34 +36,61 @@ export const MobileDockBar: React.FC<MobileDockBarProps> = ({
   // Tentukan tab mana yang disorot oleh pill (tab yang di-hover saat seret, atau activeView)
   const displayedView = isDragging && dragHoverTab ? dragHoverTab : activeView;
   const isAiraDisplayed = displayedView === "assistant";
-  const displayedNormalIndex = NORMAL_TABS.findIndex((t) => t.id === displayedView);
+  const isNormalTab = NORMAL_TAB_IDS.includes(displayedView);
 
-  // Animasi posisi pill aktif di antara 4 tab normal
+  // Animasi posisi pill aktif di antara 4 tab normal dengan presisi DOM aktual (100% tepat di tengah icon)
+  const updatePillPosition = useCallback(
+    (immediate = false) => {
+      if (!pillRef.current || !containerRef.current) return;
+
+      if (isAiraDisplayed || !isNormalTab) {
+        // Saat AIRA aktif, sembunyikan pill karena AIRA adalah floating orb terpisah
+        gsap.to(pillRef.current, {
+          opacity: 0,
+          scale: 0.6,
+          duration: 0.2,
+          ease: "power2.in",
+        });
+        return;
+      }
+
+      const targetBtn = tabButtonRefs.current[displayedView];
+      if (!targetBtn) return;
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const btnRect = targetBtn.getBoundingClientRect();
+      // Hitung posisi tengah persis ikon relatif terhadap dock bar
+      const targetPixelX = btnRect.left - containerRect.left + btnRect.width / 2 - 22;
+
+      if (immediate) {
+        gsap.set(pillRef.current, {
+          opacity: 1,
+          scale: 1,
+          x: targetPixelX,
+        });
+      } else {
+        gsap.to(pillRef.current, {
+          opacity: 1,
+          scale: 1,
+          x: targetPixelX,
+          duration: isDragging ? 0.12 : 0.28,
+          ease: isDragging ? "power1.out" : "back.out(1.2)",
+        });
+      }
+    },
+    [displayedView, isAiraDisplayed, isNormalTab, isDragging]
+  );
+
   useEffect(() => {
-    if (!pillRef.current || !containerRef.current) return;
+    updatePillPosition();
+  }, [updatePillPosition]);
 
-    if (isAiraDisplayed || displayedNormalIndex === -1) {
-      // Saat AIRA aktif, sembunyikan pill karena AIRA adalah floating orb terpisah
-      gsap.to(pillRef.current, {
-        opacity: 0,
-        scale: 0.6,
-        duration: 0.2,
-        ease: "power2.in",
-      });
-    } else {
-      const targetTab = NORMAL_TABS[displayedNormalIndex];
-      const containerWidth = containerRef.current.offsetWidth;
-      const targetPixelX = (targetTab.centerX / 360) * containerWidth - 22;
-
-      gsap.to(pillRef.current, {
-        opacity: 1,
-        scale: 1,
-        x: targetPixelX,
-        duration: isDragging ? 0.12 : 0.3,
-        ease: isDragging ? "power1.out" : "back.out(1.4)",
-      });
-    }
-  }, [displayedView, isAiraDisplayed, displayedNormalIndex, isDragging]);
+  // Update posisi pill saat window resize
+  useEffect(() => {
+    const handleResize = () => updatePillPosition(true);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [updatePillPosition]);
 
   // Touch Start: Simpan posisi awal sentuhan
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -126,13 +121,13 @@ export const MobileDockBar: React.FC<MobileDockBarProps> = ({
       const ratio = clampedX / rect.width;
 
       // 4 Kuadran Tab Normal — AIRA DILEWATKAN SEPENUHNYA DARI SERETAN
-      // Di posisi tengah (cradle AIRA), hover langsung melompat antara monitoring dan device.
+      // Di posisi ujung (Overview & Analytics), rentang disesuaikan agar mentok pas di tengah ikon.
       let hovered: ViewId = "overview";
-      if (ratio < 0.25) {
+      if (ratio < 0.22) {
         hovered = "overview";
       } else if (ratio < 0.5) {
         hovered = "monitoring";
-      } else if (ratio < 0.75) {
+      } else if (ratio < 0.78) {
         hovered = "device";
       } else {
         hovered = "analytics";
@@ -215,6 +210,9 @@ export const MobileDockBar: React.FC<MobileDockBarProps> = ({
           {/* ── SISI KIRI: Overview & Monitoring ── */}
           <div className="flex items-center justify-around w-[130px] z-10 pl-1">
             <button
+              ref={(el) => {
+                tabButtonRefs.current["overview"] = el;
+              }}
               type="button"
               onClick={() => {
                 if (!justDraggedRef.current && !isDraggingRef.current) {
@@ -233,6 +231,9 @@ export const MobileDockBar: React.FC<MobileDockBarProps> = ({
             </button>
 
             <button
+              ref={(el) => {
+                tabButtonRefs.current["monitoring"] = el;
+              }}
               type="button"
               onClick={() => {
                 if (!justDraggedRef.current && !isDraggingRef.current) {
@@ -292,6 +293,9 @@ export const MobileDockBar: React.FC<MobileDockBarProps> = ({
           {/* ── SISI KANAN: Device & Analytics ── */}
           <div className="flex items-center justify-around w-[130px] z-10 pr-1 ml-auto">
             <button
+              ref={(el) => {
+                tabButtonRefs.current["device"] = el;
+              }}
               type="button"
               onClick={() => {
                 if (!justDraggedRef.current && !isDraggingRef.current) {
@@ -310,6 +314,9 @@ export const MobileDockBar: React.FC<MobileDockBarProps> = ({
             </button>
 
             <button
+              ref={(el) => {
+                tabButtonRefs.current["analytics"] = el;
+              }}
               type="button"
               onClick={() => {
                 if (!justDraggedRef.current && !isDraggingRef.current) {
