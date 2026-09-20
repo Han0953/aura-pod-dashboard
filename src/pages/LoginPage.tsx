@@ -167,7 +167,71 @@ export const LoginPage: React.FC = () => {
   };
 
   // 2. Rolling Door Login Trigger (GSAP Cinematic Door Split)
-  const handleSubmit = (e: React.FormEvent) => {
+  const executeSuccessfulLogin = () => {
+    setIsSubmitting(false);
+    setIsSuccess(true);
+    setErrorMessage(null);
+
+    try {
+      sessionStorage.setItem("aura_authenticated", "true");
+    } catch {}
+
+    const isMobile = window.innerWidth < 768;
+    const tl = gsap.timeline({
+      onComplete: () => {
+        // Navigate cleanly to Dashboard page with entrance flag
+        navigate("/dashboard?entrance=1");
+      },
+    });
+
+    if (isMobile) {
+      // Mobile sheet dismiss animation
+      tl.to(loginCardRef.current, {
+        y: 80,
+        scale: 0.92,
+        opacity: 0,
+        duration: 0.5,
+        ease: "power3.inOut",
+      }).to(
+        containerRef.current,
+        {
+          opacity: 0,
+          duration: 0.35,
+          ease: "power2.out",
+        },
+        "-=0.2"
+      );
+    } else {
+      // Desktop Rolling Door Split
+      tl.to(loginCardRef.current, {
+        scale: 0.95,
+        opacity: 0.8,
+        duration: 0.2,
+        ease: "power2.out",
+      })
+        .to(
+          leftDoorRef.current,
+          {
+            xPercent: -100,
+            duration: 0.85,
+            ease: "power3.inOut",
+          },
+          "+=0.05"
+        )
+        .to(
+          rightDoorRef.current,
+          {
+            xPercent: 100,
+            duration: 0.85,
+            ease: "power3.inOut",
+          },
+          "<" // simultaneous with left door
+        );
+    }
+  };
+
+  // 2. Rolling Door Login Trigger (GSAP Cinematic Door Split + Vercel Serverless API)
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting || isSuccess) return;
 
@@ -184,75 +248,42 @@ export const LoginPage: React.FC = () => {
 
     setIsSubmitting(true);
 
-    // Auth verification
-    setTimeout(() => {
-      if (inputUser === AUTH_USERNAME && inputPass === AUTH_PASSWORD) {
-        setIsSubmitting(false);
-        setIsSuccess(true);
-        setErrorMessage(null);
+    try {
+      // 1. Coba verifikasi lewat Vercel Serverless Function API
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: inputUser, password: inputPass }),
+      });
 
-        try {
-          sessionStorage.setItem("aura_authenticated", "true");
-        } catch {}
-
-        const isMobile = window.innerWidth < 768;
-        const tl = gsap.timeline({
-          onComplete: () => {
-            // Navigate cleanly to Dashboard page with entrance flag
-            navigate("/dashboard?entrance=1");
-          },
-        });
-
-        if (isMobile) {
-          // Mobile sheet dismiss animation
-          tl.to(loginCardRef.current, {
-            y: 80,
-            scale: 0.92,
-            opacity: 0,
-            duration: 0.5,
-            ease: "power3.inOut",
-          }).to(
-            containerRef.current,
-            {
-              opacity: 0,
-              duration: 0.35,
-              ease: "power2.out",
-            },
-            "-=0.2"
-          );
-        } else {
-          // Desktop Rolling Door Split
-          tl.to(loginCardRef.current, {
-            scale: 0.95,
-            opacity: 0.8,
-            duration: 0.2,
-            ease: "power2.out",
-          })
-            .to(
-              leftDoorRef.current,
-              {
-                xPercent: -100,
-                duration: 0.85,
-                ease: "power3.inOut",
-              },
-              "+=0.05"
-            )
-            .to(
-              rightDoorRef.current,
-              {
-                xPercent: 100,
-                duration: 0.85,
-                ease: "power3.inOut",
-              },
-              "<" // simultaneous with left door
-            );
-        }
-      } else {
-        setIsSubmitting(false);
-        setErrorMessage("Username atau password salah. Cek kredensial Anda.");
-        triggerErrorShake();
+      // Jika respons dari backend Vercel sukses
+      if (res.ok) {
+        executeSuccessfulLogin();
+        return;
       }
-    }, 400);
+
+      if (res.status === 401 || res.status === 400) {
+        const data = await res.json().catch(() => null);
+        setIsSubmitting(false);
+        setErrorMessage(data?.message || "Username atau password salah. Cek kredensial Anda.");
+        triggerErrorShake();
+        return;
+      }
+
+      // Jika status lain / 404 (misal di localhost dev biasa tanpa Vercel CLI)
+      throw new Error("Endpoint serverless tidak tersedia di local dev");
+    } catch {
+      // Fallback lokal yang aman saat dijalankan di laptop
+      setTimeout(() => {
+        if (inputUser === AUTH_USERNAME && inputPass === AUTH_PASSWORD) {
+          executeSuccessfulLogin();
+        } else {
+          setIsSubmitting(false);
+          setErrorMessage("Username atau password salah. Cek kredensial Anda.");
+          triggerErrorShake();
+        }
+      }, 350);
+    }
   };
 
   return (
