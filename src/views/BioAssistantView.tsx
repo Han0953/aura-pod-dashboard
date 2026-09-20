@@ -32,7 +32,7 @@ const QUICK_PROMPTS = [
   "Jelaskan batasan operasional sensor DS18B20 & MQ-135",
 ];
 
-// Helper untuk merender teks dengan mengubah markdown **kata** menjadi teks tebal rapi tanpa tanda **
+// Helper untuk merender teks dengan mengubah markdown **kata** menjadi teks tebal rapi tanpa tanda bintang *
 const FormattedMessageContent: React.FC<{ content: string; isUser: boolean }> = ({ content, isUser }) => {
   const lines = content.split("\n");
 
@@ -44,7 +44,7 @@ const FormattedMessageContent: React.FC<{ content: string; isUser: boolean }> = 
       <span key={lineKey}>
         {parts.map((part, index) => {
           if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
-            const boldText = part.slice(2, -2);
+            const boldText = part.slice(2, -2).replace(/\*/g, "").trim();
             return (
               <strong
                 key={index}
@@ -57,7 +57,9 @@ const FormattedMessageContent: React.FC<{ content: string; isUser: boolean }> = 
               </strong>
             );
           }
-          return part;
+          // Bersihkan seluruh karakter asterisk * tunggal yang mungkin tersisa
+          const cleanPart = part.replace(/\*/g, "");
+          return cleanPart;
         })}
       </span>
     );
@@ -71,9 +73,9 @@ const FormattedMessageContent: React.FC<{ content: string; isUser: boolean }> = 
           return <div key={idx} className="h-1" />;
         }
 
-        // Bullet point dengan tanda - atau *
-        if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-          const bulletContent = trimmed.slice(2);
+        // Bullet point dengan tanda -, *, atau •
+        if (trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("• ")) {
+          const bulletContent = trimmed.replace(/^[-*•]\s*/, "");
           return (
             <div key={idx} className="flex items-start gap-2 pl-0.5">
               <span
@@ -103,24 +105,34 @@ export const BioAssistantView: React.FC<BioAssistantViewProps> = ({ dashboard })
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { sensorData, deviceStatus, diagnostics } = dashboard;
-  const currentTemp = sensorData?.temperature ?? 25.4;
-  const currentGas = sensorData?.gasIndex ?? 42;
   const isOnline = deviceStatus?.online ?? false;
-  const uptime = diagnostics?.uptime ?? "0h 0m 0s";
+  // Jika offline, JANGAN gunakan nilai cadangan 42 atau 25.4 fiktif
+  const currentTemp = isOnline ? (sensorData?.temperature ?? 0) : null;
+  const currentGas = isOnline ? (sensorData?.gasIndex ?? null) : null;
+  const uptime = isOnline ? (diagnostics?.uptime ?? "0h 0m 0s") : "0s (Offline)";
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     return [
       {
         id: "msg-init",
         role: "assistant",
-        content: `Halo! Saya adalah **Bio-AI Assistant** AURA Pod. Saya terhubung langsung ke mikrokontroler ESP32 untuk memantau data sensor fisik riil secara *real-time*.
+        content: isOnline
+          ? `Halo! Aku **Bio-AI Assistant** AURA Pod. Aku terhubung langsung ke mikrokontroler ESP32 untuk bantu kamu memantau sensor fisik riil secara real-time.
 
-Saat ini telemetri fisik aktif terbaca:
-- **Suhu Kultur (DS18B20)**: **${currentTemp.toFixed(1)} °C**
-- **Indeks Gas (MQ-135)**: **${currentGas} Idx**
-- **Status ESP32**: **${isOnline ? "Online" : "Offline"}**
+Saat ini telemetri fisik aktif yang aku baca:
+- **Suhu Kultur (DS18B20)**: **${currentTemp !== null ? `${currentTemp.toFixed(1)} °C` : "--"}**
+- **Indeks Gas (MQ-135)**: **${currentGas !== null ? `${currentGas} Idx` : "--"}**
+- **Status ESP32**: **Online**
 
-Ada yang ingin Anda analisis mengenai kondisi bioreaktor atau optimasi kultur mikroganggang saat ini?`,
+Ada yang ingin kamu diskusikan atau tanyakan ke aku tentang kondisi bioreaktormu hari ini?`
+          : `Halo! Aku **Bio-AI Assistant** AURA Pod. Saat ini mikrokontroler ESP32 terpantau **Offline**, sehingga sensor suhu DS18B20 dan gas MQ-135 belum aktif mengirimkan data telemetri riil.
+
+Status Perangkat Keras:
+- **Status ESP32**: **Offline (Tidak Terhubung)**
+- **Sensor Suhu (DS18B20)**: **-- °C (Offline)**
+- **Sensor Gas (MQ-135)**: **-- Idx (Offline)**
+
+Silakan nyalakan atau hubungkan node ESP32 kamu ke jaringan Wi-Fi/Blynk agar aku bisa membaca dan menganalisis kondisi bioreaktormu secara real-time ya!`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       },
     ];
@@ -219,14 +231,16 @@ Ada yang ingin Anda analisis mengenai kondisi bioreaktor atau optimasi kultur mi
       {
         id: `msg-${Date.now()}`,
         role: "assistant",
-        content: `Percakapan telah diatur ulang. Telemetri riil terkini: **Suhu ${currentTemp.toFixed(1)} °C** (DS18B20) dan **Gas ${currentGas} Idx** (MQ-135). Silakan ajukan pertanyaan baru.`,
+        content: isOnline
+          ? `Percakapan sudah aku atur ulang ya. Telemetri riil terkini: **Suhu ${currentTemp !== null ? `${currentTemp.toFixed(1)} °C` : "--"}** (DS18B20) dan **Gas ${currentGas !== null ? `${currentGas} Idx` : "--"}** (MQ-135). Ada yang mau kamu tanyakan ke aku?`
+          : `Percakapan sudah aku atur ulang. Saat ini ESP32 terpantau **Offline**. Hubungkan node ESP32 kamu agar aku bisa membaca data sensor fisik riil ya!`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       },
     ]);
   };
 
-  const isTempOptimal = currentTemp >= 21.0 && currentTemp <= 28.5;
-  const isGasOptimal = currentGas <= 200;
+  const isTempOptimal = currentTemp !== null && currentTemp >= 21.0 && currentTemp <= 28.5;
+  const isGasOptimal = currentGas !== null && currentGas <= 200;
 
   return (
     <div ref={containerRef} className="space-y-6 pb-12">
@@ -277,17 +291,19 @@ Ada yang ingin Anda analisis mengenai kondisi bioreaktor atau optimasi kultur mi
                   DS18B20 Suhu
                 </span>
                 <span className="text-sm font-heading font-bold text-aura-text-primary">
-                  {currentTemp.toFixed(1)} °C
+                  {isOnline && currentTemp !== null ? `${currentTemp.toFixed(1)} °C` : "-- °C"}
                 </span>
                 <span
                   className={cn(
                     "text-[9px] font-mono ml-1.5 px-1 py-0.2 rounded font-semibold",
-                    isTempOptimal
+                    !isOnline
+                      ? "bg-zinc-500/10 text-zinc-400 border border-zinc-500/20"
+                      : isTempOptimal
                       ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                       : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                   )}
                 >
-                  {isTempOptimal ? "Optimal" : "Waspada"}
+                  {!isOnline ? "Offline" : isTempOptimal ? "Optimal" : "Waspada"}
                 </span>
               </div>
             </div>
@@ -302,17 +318,19 @@ Ada yang ingin Anda analisis mengenai kondisi bioreaktor atau optimasi kultur mi
                   MQ-135 Gas
                 </span>
                 <span className="text-sm font-heading font-bold text-aura-text-primary">
-                  {currentGas} Idx
+                  {isOnline && currentGas !== null ? `${currentGas} Idx` : "-- Idx"}
                 </span>
                 <span
                   className={cn(
                     "text-[9px] font-mono ml-1.5 px-1 py-0.2 rounded font-semibold",
-                    isGasOptimal
+                    !isOnline
+                      ? "bg-zinc-500/10 text-zinc-400 border border-zinc-500/20"
+                      : isGasOptimal
                       ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                       : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                   )}
                 >
-                  {isGasOptimal ? "Stabil" : "Perhatian"}
+                  {!isOnline ? "Offline" : isGasOptimal ? "Stabil" : "Perhatian"}
                 </span>
               </div>
             </div>
@@ -455,7 +473,7 @@ Ada yang ingin Anda analisis mengenai kondisi bioreaktor atau optimasi kultur mi
               type="text"
               value={inputPrompt}
               onChange={(e) => setInputPrompt(e.target.value)}
-              placeholder="Tanyakan analisis kondisi bioreaktor atau rekomendasi kultur..."
+              placeholder="Tanya kondisi bioreaktor atau rekomendasi kultur ke aku..."
               disabled={isThinking}
               className="flex-1 px-4 py-2.5 rounded-xl bg-aura-bg border border-aura-border text-sm text-aura-text-primary placeholder:text-aura-text-secondary/50 focus:outline-none focus:border-aura-primary focus:ring-1 focus:ring-aura-primary transition-all disabled:opacity-50"
             />
@@ -477,44 +495,54 @@ Ada yang ingin Anda analisis mengenai kondisi bioreaktor atau optimasi kultur mi
 // Fallback cerdas lokal saat diuji di laptop tanpa koneksi Vercel
 function generateLocalTelemetryAnalysis(
   query: string,
-  temperature: number,
-  gasIndex: number,
+  temperature: number | null,
+  gasIndex: number | null,
   deviceOnline: boolean,
   uptime: string
 ): string {
   const q = query.toLowerCase();
+
+  // Jika offline, laporkan secara jujur tanpa angka palsu
+  if (!deviceOnline || temperature === null) {
+    return `Saat ini mikrokontroler ESP32 terpantau Offline (belum terhubung ke jaringan Blynk).
+
+Karena perangkat sedang offline, data sensor fisik suhu (DS18B20) dan gas (MQ-135) belum aktif mengirimkan pembacaan ke dashboard.
+
+Silakan nyalakan node ESP32 kamu dan pastikan terhubung ke Wi-Fi agar aku bisa membaca kondisi bioreaktormu secara real-time ya!`;
+  }
+
   const isTempOptimal = temperature >= 21.0 && temperature <= 28.5;
-  const isGasOptimal = gasIndex <= 200;
+  const isGasOptimal = gasIndex !== null && gasIndex <= 200;
 
   if (q.includes("ph") || q.includes("dissolved oxygen") || q.includes("do") || q.includes("oksigen terlarut")) {
-    return `Saat ini, modul sensor fisik yang terpasang aktif pada ESP32 AURA Pod adalah **Sensor Suhu DS18B20** (${temperature.toFixed(1)} °C) dan **Sensor Gas MQ-135** (${gasIndex} Idx).
+    return `Saat ini, modul sensor fisik yang aktif terhubung ke ESP32 AURA Pod adalah Sensor Suhu DS18B20 (${temperature.toFixed(1)} °C) dan Sensor Gas MQ-135 (${gasIndex} Idx).
 
-Parameter seperti pH dan Dissolved Oxygen (DO) saat ini masih berada dalam **tahap integrasi modul riset & pengembangan (R&D)** sehingga belum membaca sensor fisik aktif. Analisis bioproses difokuskan pada stabilitas termal dan pertukaran gas kultur.`;
+Untuk parameter seperti pH dan Dissolved Oxygen (DO), saat ini masih dalam tahap integrasi modul riset & pengembangan (R&D) ya. Jadi aku fokuskan analisis telemetri ke kestabilan suhu dan kualitas udara headspace bioreaktor dulu.`;
   }
 
   if (q.includes("suhu") || q.includes("panas") || q.includes("dingin") || q.includes("temperature")) {
-    return `Berdasarkan pembacaan riil sensor **DS18B20**, suhu kultur mikroganggang saat ini adalah **${temperature.toFixed(1)} °C**.
+    return `Dari pembacaan sensor DS18B20, suhu kultur mikroganggang saat ini terbaca ${temperature.toFixed(1)} °C.
 
-- **Status Termal**: ${isTempOptimal ? "Optimal (Normal)" : temperature > 28.5 ? "Waspada Tinggi (Potensi Stres Termal)" : "Di Bawah Ambang Ideal"}
-- **Ambang Batas Kultur**: 21.0 °C – 28.5 °C.
-- **Rekomendasi**: ${isTempOptimal ? "Suhu kultur sangat ideal untuk mendukung laju fotosintesis mikroalga. Pertahankan aerasi reguler." : temperature > 28.5 ? "Disarankan mengaktifkan pendinginan pasif atau menyesuaikan intensitas grow light agar suhu tidak merusak enzim Rubisco." : "Suhu agak rendah, laju metabolisme mikroalga dapat melambat."}`;
+- Status Termal: ${isTempOptimal ? "Optimal (Aman)" : temperature > 28.5 ? "Waspada (Agak Panas)" : "Di Bawah Ambang Ideal (Agak Dingin)"}
+- Rentang Ideal: 21.0 °C – 28.5 °C.
+- Saran untuk Kamu: ${isTempOptimal ? "Suhu kultur sangat bersahabat untuk laju fotosintesis mikroalga. Kamu cukup pertahankan sirkulasi aerasi rutin ya!" : temperature > 28.5 ? "Suhu agak tinggi, aku sarankan kamu cek aerasi atau sesuaikan jarak grow light agar enzim Rubisco mikroalga tidak stres termal." : "Suhu agak rendah nih, metabolisme mikroganggang bisa sedikit melambat."}`;
   }
 
   if (q.includes("gas") || q.includes("udara") || q.includes("co2") || q.includes("mq-135") || q.includes("aqi")) {
-    return `Berdasarkan pembacaan riil sensor gas **MQ-135**, indeks kualitas udara bioreaktor berada pada angka **${gasIndex} Idx**.
+    return `Dari sensor gas MQ-135, indeks kualitas udara bioreaktor sekarang berada di angka ${gasIndex} Idx.
 
-- **Status Gas**: ${isGasOptimal ? "Kondisi Bersih / Stabil" : "Peningkatan Gas Terdeteksi"}
-- **Ambang Batas**: 0 – 200 Idx (Normal).
-- **Analisis Biologis**: ${isGasOptimal ? "Konsentrasi gas berada dalam batas aman. Pertukaran gas antara fasa cair dan headspace bioreaktor berjalan seimbang." : "Terjadi peningkatan akumulasi gas. Pastikan sistem aerasi dan ventilasi headspace terbuka dengan baik."}`;
+- Status Gas: ${isGasOptimal ? "Kondisi Bersih & Stabil" : "Ada Peningkatan Gas"}
+- Ambang Normal: 0 – 200 Idx.
+- Analisis: ${isGasOptimal ? "Konsentrasi gas dalam batas aman. Pertukaran gas antara kultur cair dan udara bioreaktor berjalan seimbang." : "Konsentrasi gas terdeteksi meningkat. Coba pastikan ventilasi dan sistem aerasi bioreaktormu mengalir lancar ya."}`;
   }
 
-  return `Berikut ringkasan analisis kondisi fisik AURA Pod saat ini:
+  return `Ini ringkasan kondisi fisik AURA Pod yang aku pantau saat ini:
 
-1. **Konektivitas Node ESP32**: ${deviceOnline ? "Aktif & Terhubung" : "Offline"} (Uptime: ${uptime})
-2. **Suhu Kultur (DS18B20)**: **${temperature.toFixed(1)} °C** &mdash; ${isTempOptimal ? "✅ Optimal untuk pertumbuhan mikroalga" : "⚠️ Perlu perhatian toleransi termal"}
-3. **Indeks Gas (MQ-135)**: **${gasIndex} Idx** &mdash; ${isGasOptimal ? "✅ Kualitas udara headspace aman" : "⚠️ Peningkatan gas"}
+1. Status Node ESP32: ${deviceOnline ? "Online & Terhubung" : "Offline"} (Uptime: ${uptime})
+2. Suhu Kultur (DS18B20): ${temperature.toFixed(1)} °C — ${isTempOptimal ? "Optimal untuk mikroalga" : "Perlu perhatian termal"}
+3. Indeks Gas (MQ-135): ${gasIndex} Idx — ${isGasOptimal ? "Kualitas udara headspace aman" : "Peningkatan gas terdeteksi"}
 
-*Catatan: Analisis ini murni menggunakan 2 sensor fisik aktif. Modul sensor lanjutan (pH/DO) saat ini dalam fase pengembangan lanjutan.*`;
+Catatan: Analisis ini murni membaca 2 sensor fisik aktif. Modul sensor lanjutan (pH/DO) saat ini masih dalam fase R&D ya.`;
 }
 
 export default BioAssistantView;
