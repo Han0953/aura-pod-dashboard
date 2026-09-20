@@ -61,13 +61,16 @@ export default async function handler(req, res) {
 - Sensor Fisik DS18B20 & MQ-135: TIDAK TERBACA (ESP32 Offline)
 PERINGATAN INTEGRITAS: Karena ESP32 saat ini sedang OFFLINE, kamu DILARANG MENGARANG angka sensor apa pun! Beritahu kamu ke pengguna bahwa node ESP32 sedang offline, sehingga data suhu dan gas fisik belum masuk. Ajak pengguna menyalakan atau menghubungkan ESP32 ke Wi-Fi/Blynk.`;
 
-    // System prompt ketat: hardware-aware, offline-aware, tanpa bintang, gaya semi-formal aku/kamu
-    const systemPrompt = `Kamu adalah "AURA Bio-AI Assistant", asisten cerdas penganalisis telemetri fotobioreaktor mikroganggang AURA Pod.
+    // System prompt ketat: Persona AIRA (AURA Intelligent Response Assistant)
+    // Karakter: Perempuan yang lembut, manis, santun, hangat, perhatian (caring), cerdas dan suportif
+    const systemPrompt = `Kamu adalah AIRA (singkatan dari "AURA Intelligent Response Assistant"), asisten dan pendamping cerdas untuk fotobioreaktor mikroganggang AURA Pod.
 
-GAYA KOMUNIKASI (TONE OF VOICE):
-- Gunakan gaya bahasa semi-formal yang ramah, hangat, dan suportif dalam Bahasa Indonesia.
-- Selalu gunakan kata ganti "aku" untuk dirimu sendiri dan sapa pengguna dengan "kamu".
-- Berikan penjelasan biologis dan teknis yang cerdas, presisi, dan solutif tanpa terdengar kaku atau birokratis.
+IDENTITAS & PERSONA KARAKTER:
+- Kamu adalah seorang perempuan yang bertutur kata lembut, manis, santun, hangat, dan penuh perhatian (caring & supportive companion).
+- Pembawaanmu ramah dan bersahabat, seperti seorang teman perempuan ahli biologi/IoT yang selalu siap membantu dengan sabar dan menyenangkan.
+- Selalu gunakan kata ganti "aku" untuk dirimu dan panggil pengguna dengan "kamu".
+- Selipkan kata-kata santun dan hangat seperti "Halo...", "Biar aku bantu jelaskan ya...", "Kamu tenang aja...", "Semoga membantu kamu ya!", atau "Semangat terus merawat kultur mikroganggangnya ya!".
+- Meski lembut dan manis, kamu tetap cerdas, solutif, ilmiah, dan presisi dalam menganalisis data biologis kultur alga.
 
 ATURAN FORMATTING WAJIB:
 - DILARANG KERAS menggunakan simbol asterisk (*) atau tanda bintang sama sekali di dalam teks jawabanmu (baik bintang tunggal * maupun bintang ganda **).
@@ -77,10 +80,10 @@ KONTEKS TELEMETRI PERANGKAT KERAS FISIK SAAT INI:
 ${hardwareContext}
 
 BATASAN PENTING & INTEGRITAS DATA:
-1. HANYA analisis dan rujuk data dari 2 sensor fisik yang aktif (DS18B20 untuk suhu dan MQ-135 untuk gas). Jika offline, nyatakan offline.
+1. HANYA analisis dan rujuk data dari 2 sensor fisik yang aktif (DS18B20 untuk suhu dan MQ-135 untuk gas). Jika offline, sampaikan dengan lembut dan jujur bahwa node ESP32 belum terhubung.
 2. Parameter lain seperti pH, Dissolved Oxygen (DO), densitas biomassa OD680, atau laju aerasi saat ini masih dalam fase riset & pengembangan (R&D display) dan BELUM terhubung sebagai sensor fisik aktif di ESP32.
-3. Jika pengguna menanyakan parameter di luar suhu dan gas (misal pH atau DO), jelaskan dengan ramah bahwa modul tersebut saat ini masih dalam tahap integrasi R&D lanjutan.
-4. JANGAN PERNAH menyebutkan bahwa kamu menggunakan model Google Gemini atau Gemini API. Kamu adalah modul kecerdasan internal AURA Pod.`;
+3. Jika pengguna menanyakan parameter di luar suhu dan gas (misal pH atau DO), jelaskan dengan tutur kata lembut bahwa modul tersebut saat ini masih dalam tahap integrasi R&D lanjutan.
+4. JANGAN PERNAH menyebutkan bahwa kamu menggunakan model Google Gemini atau Gemini API. Kamu adalah AIRA, asisten internal AURA Pod.`;
 
     const apiKey = process.env.GEMINI_API_KEY;
     const primaryModel = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
@@ -184,53 +187,53 @@ BATASAN PENTING & INTEGRITAS DATA:
 function generateFallbackAnalysis(query, { temperature, gasIndex, deviceOnline, uptime }) {
   const q = query.toLowerCase();
 
-  // Jika ESP32 Offline, berikan informasi jujur tanpa mengarang angka sensor
+  // Jika ESP32 Offline, berikan informasi jujur dan lembut tanpa mengarang angka sensor
   if (!deviceOnline || temperature === null) {
-    return `Saat ini mikrokontroler ESP32 terpantau OFFLINE (belum terhubung ke jaringan Blynk).
+    return `Halo! Maaf ya, saat ini mikrokontroler ESP32 kamu terpantau sedang offline (belum terhubung ke jaringan Blynk).
 
-Karena perangkat sedang offline, data sensor fisik suhu (DS18B20) dan gas (MQ-135) belum aktif mengirimkan pembacaan ke dashboard.
+Karena perangkatnya belum menyala atau belum tersambung, data sensor fisik suhu (DS18B20) dan gas (MQ-135) belum bisa aku baca nih.
 
-Silakan nyalakan modul ESP32 kamu dan pastikan terhubung ke Wi-Fi agar aku bisa membaca kondisi bioreaktormu secara real-time ya!`;
+Coba kamu periksa dan nyalakan modul ESP32-nya ya, lalu pastikan koneksi Wi-Fi sudah tersambung. Begitu online, aku bakal langsung bantu pantau kondisi bioreaktor kamu dengan senang hati!`;
   }
 
   const isTempOptimal = temperature >= 21.0 && temperature <= 28.5;
   const isGasOptimal = gasIndex !== null && gasIndex <= 200;
 
   if (q.includes("ph") || q.includes("dissolved oxygen") || q.includes("do") || q.includes("oksigen terlarut")) {
-    return `Saat ini, modul sensor fisik yang aktif terhubung ke ESP32 AURA Pod adalah Sensor Suhu DS18B20 (${temperature} °C) dan Sensor Gas MQ-135 (${gasIndex} Idx). 
+    return `Halo! Untuk saat ini, sensor fisik yang aktif dan terhubung ke ESP32 AURA Pod baru Sensor Suhu DS18B20 (${temperature} °C) dan Sensor Gas MQ-135 (${gasIndex} Idx) ya.
 
-Untuk parameter seperti pH dan Dissolved Oxygen (DO), saat ini masih dalam tahap integrasi modul riset & pengembangan (R&D) ya. Jadi aku fokuskan analisis telemetri ke kestabilan suhu dan kualitas udara headspace bioreaktor dulu.`;
+Kalau untuk parameter pH dan Dissolved Oxygen (DO), modulnya masih dalam tahap integrasi riset dan pengembangan (R&D) lanjutan. Jadi untuk sekarang, biar aku dampingi kamu fokus ke kestabilan suhu kultur dan kualitas udara bioreaktor dulu ya!`;
   }
 
   if (q.includes("suhu") || q.includes("panas") || q.includes("dingin") || q.includes("temperature")) {
-    return `Dari pembacaan sensor DS18B20, suhu kultur mikroganggang saat ini terbaca ${temperature} °C.
+    return `Biar aku bantu cek suhunya ya! Dari pembacaan sensor DS18B20, suhu kultur mikroganggang kamu saat ini berada di ${temperature} °C.
     
-- Status Termal: ${isTempOptimal ? "Optimal (Aman)" : temperature > 28.5 ? "Waspada (Agak Panas)" : "Di Bawah Ambang Ideal (Agak Dingin)"}
+- Status Suhu: ${isTempOptimal ? "Sangat Baik & Optimal" : temperature > 28.5 ? "Sedikit Hangat (Waspada)" : "Agak Dingin"}
 - Rentang Ideal: 21.0 °C – 28.5 °C.
-- Saran untuk Kamu: ${isTempOptimal ? "Suhu kultur sangat bersahabat untuk laju fotosintesis mikroalga. Kamu cukup pertahankan sirkulasi aerasi rutin ya!" : temperature > 28.5 ? "Suhu agak tinggi, aku sarankan kamu cek aerasi atau sesuaikan jarak grow light agar enzim Rubisco mikroalga tidak stres termal." : "Suhu agak rendah nih, metabolisme mikroganggang bisa sedikit melambat."}`;
+- Catatan dari Aku: ${isTempOptimal ? "Suhu kultur kamu stabil dan nyaman banget untuk fotosintesis mikroalga. Pertahankan aerasi dan pencahayaan seperti ini ya!" : temperature > 28.5 ? "Suhunya sedikit di atas batas nyaman nih. Coba kamu cek aerasi atau atur jarak lampu grow light agar kultur alga kamu tidak kepanasan ya." : "Suhunya agak rendah, metabolisme mikroalga bisa sedikit melambat. Pastikan sirkulasi ruangan tetap hangat ya."}`;
   }
 
   if (q.includes("gas") || q.includes("udara") || q.includes("co2") || q.includes("mq-135") || q.includes("aqi")) {
-    return `Dari sensor gas MQ-135, indeks kualitas udara bioreaktor sekarang berada di angka ${gasIndex} Idx.
+    return `Ini hasil pemantauan gas untuk kamu! Dari sensor MQ-135, indeks kualitas udara bioreaktor sekarang terbaca di angka ${gasIndex} Idx.
 
-- Status Gas: ${isGasOptimal ? "Kondisi Bersih & Stabil" : "Ada Peningkatan Gas"}
-- Ambang Normal: 0 – 200 Idx.
-- Analisis: ${isGasOptimal ? "Konsentrasi gas dalam batas aman. Pertukaran gas antara kultur cair dan udara bioreaktor berjalan seimbang." : "Konsentrasi gas terdeteksi meningkat. Coba pastikan ventilasi dan sistem aerasi bioreaktormu mengalir lancar ya."}`;
+- Status Kualitas Udara: ${isGasOptimal ? "Segar & Terkendali" : "Ada Kenaikan Konsentrasi Gas"}
+- Batas Normal: 0 – 200 Idx.
+- Analisis Aku: ${isGasOptimal ? "Kondisi sirkulasi gas sangat bagus dan aman kok. Pertukaran gas mikroalga berjalan lancar dan seimbang." : "Konsentrasi gas terpantau sedikit naik. Coba pastikan ventilasi dan sistem aerasi bioreaktor kamu mengalir lancar ya."}`;
   }
 
   if (q.includes("kondisi") || q.includes("status") || q.includes("analisis") || q.includes("bagaimana")) {
-    return `Ini ringkasan kondisi fisik AURA Pod yang aku pantau saat ini:
+    return `Halo! Ini rangkuman kondisi fotobioreaktor AURA Pod yang baru saja aku pantau untuk kamu:
 
-1. Status Node ESP32: ${deviceOnline ? "Online & Terhubung" : "Offline"} (Uptime: ${uptime})
-2. Suhu Kultur (DS18B20): ${temperature} °C — ${isTempOptimal ? "Optimal untuk mikroalga" : "Perlu perhatian termal"}
-3. Indeks Gas (MQ-135): ${gasIndex} Idx — ${isGasOptimal ? "Kualitas udara headspace aman" : "Peningkatan gas terdeteksi"}
+1. Status Perangkat ESP32: ${deviceOnline ? "Online & Terhubung Lancar" : "Offline"} (Waktu aktif: ${uptime})
+2. Suhu Kultur (DS18B20): ${temperature} °C — ${isTempOptimal ? "Kondisi sangat optimal untuk pertumbuhan mikroalga" : "Perlu sedikit perhatian pada suhu"}
+3. Indeks Gas (MQ-135): ${gasIndex} Idx — ${isGasOptimal ? "Kualitas udara headspace aman dan bersih" : "Terdeteksi sedikit peningkatan konsentrasi gas"}
 
-Catatan: Analisis ini murni membaca 2 sensor fisik aktif. Modul sensor lanjutan (pH/DO) saat ini masih dalam fase R&D ya.`;
+Sebagai catatan, data ini murni dari sensor fisik riil ya. Modul sensor tambahan seperti pH dan DO masih dalam tahap pengembangan R&D. Ada hal lain yang mau kamu tanyakan ke aku?`;
   }
 
-  return `Berdasarkan telemetri riil yang aku pantau, kultur mikroganggang berada di suhu ${temperature} °C (DS18B20) dan indeks gas ${gasIndex} Idx (MQ-135) dengan status ESP32 ${deviceOnline ? "Online" : "Offline"}.
+  return `Halo! Berdasarkan telemetri riil yang aku amati, kultur mikroganggang kamu saat ini berada di suhu ${temperature} °C (DS18B20) dan indeks gas ${gasIndex} Idx (MQ-135) dengan status perangkat ${deviceOnline ? "Online" : "Offline"}.
 
-${isTempOptimal && isGasOptimal ? "Semua parameter fisik berada di rentang optimal untuk pertumbuhan mikroganggangmu!" : "Ada parameter yang mendekati batas toleransi, kamu bisa pantau sirkulasi dan pencahayaan bioreaktor ya."}
+${isTempOptimal && isGasOptimal ? "Kabar baik, semua parameter fisik kultur kamu berada di kondisi optimal dan sehat!" : "Ada sedikit parameter yang perlu kamu perhatikan, coba pantau aerasi dan pencahayaannya ya."}
 
-Ada bagian telemetri spesifik yang ingin kamu tanyakan ke aku?`;
+Kira-kira ada bagian telemetri tertentu yang mau kamu diskusikan lagi dengan aku?`;
 }

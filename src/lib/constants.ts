@@ -34,7 +34,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: "monitoring", label: "Sensor Telemetry" },
   { id: "device", label: "Device Management" },
   { id: "analytics", label: "Analytics" },
-  { id: "assistant", label: "Bio-AI Assistant", badge: "AI" },
+  { id: "assistant", label: "AI Assistant", badge: "AI" },
   { id: "settings", label: "Settings" },
 ];
 

@@ -225,8 +225,8 @@ export const Topbar: React.FC<TopbarProps> = ({
         };
       case "assistant":
         return {
-          title: "Bio-AI Assistant",
-          subtitle: "Analisis telemetri otonom dan konsultasi bioproses fotobioreaktor",
+          title: "AIRA",
+          subtitle: "AURA Intelligent Response Assistant — Analisis telemetri bioproses dan pendamping cerdas kultur alga",
         };
       case "settings":
         return {
