@@ -83,7 +83,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
   };
 
   return (
-    <div ref={containerRef} className="space-y-6 pb-12">
+    <div ref={containerRef} className="space-y-4 sm:space-y-6 pb-0 md:pb-12">
       {/* ── Header Card ── */}
       <div className="settings-stagger-card flex flex-col md:flex-row md:items-center justify-between gap-4 bg-aura-surface border border-aura-border rounded-2xl p-6">
         <div>

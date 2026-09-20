@@ -187,9 +187,21 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
     return () => ctx.revert();
   }, []);
 
-  // Auto-scroll to bottom of chat
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const isFirstChatScroll = useRef(true);
+
+  // Auto-scroll to bottom of chat inside its own container (WITHOUT scrolling parent viewport)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!chatScrollRef.current) return;
+    if (isFirstChatScroll.current) {
+      isFirstChatScroll.current = false;
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    } else {
+      chatScrollRef.current.scrollTo({
+        top: chatScrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }, [messages, isThinking]);
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -274,7 +286,7 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
   const isGasOptimal = currentGas !== null && currentGas <= 200;
 
   return (
-    <div ref={containerRef} className="space-y-6 pb-12">
+    <div ref={containerRef} className="space-y-4 sm:space-y-6 pb-0 md:pb-12">
       {/* ── 1. Header Block ── */}
       <div className="assistant-stagger-item flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
@@ -426,7 +438,7 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
       {/* ── 3. Chat Console Box ── */}
       <div className="assistant-stagger-item rounded-2xl bg-aura-surface border border-aura-border shadow-card overflow-hidden flex flex-col h-[500px] sm:h-[560px] md:h-[600px]">
         {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+        <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {messages.map((msg) => {
             const isUser = msg.role === "user";
             return (

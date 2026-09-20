@@ -85,7 +85,7 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
   const maxGas = gasValues.length > 0 ? Math.max(...gasValues) : "--";
 
   return (
-    <div ref={containerRef} className="space-y-6 pb-12">
+    <div ref={containerRef} className="space-y-4 sm:space-y-6 pb-0 md:pb-12">
       {/* Section 1: Comparative Detailed Sensor Clusters (2 Cards) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Cluster 1: DS18B20 Temperature */}

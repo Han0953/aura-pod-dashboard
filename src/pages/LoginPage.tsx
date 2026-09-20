@@ -176,6 +176,7 @@ export const LoginPage: React.FC = () => {
 
     try {
       sessionStorage.setItem("aura_authenticated", "true");
+      localStorage.setItem("aura_active_view", "overview");
     } catch {}
 
     const isMobile = window.innerWidth < 768;

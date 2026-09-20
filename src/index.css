@@ -98,23 +98,17 @@ header,
   font-variant-numeric: tabular-nums;
 }
 
-/* Custom Scrollbar */
+/* ── Hide scrollbars everywhere across all browsers (Desktop & Mobile) while preserving smooth scrolling ── */
+* {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important;    /* Firefox */
+}
+
+*::-webkit-scrollbar,
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgb(var(--bg-canvas));
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgb(var(--border-color));
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--border-hover));
+  display: none !important;           /* Chrome, Safari, Opera, Edge */
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Glassmorphic card utility with theme variables */

@@ -149,12 +149,12 @@ export const MobileSwipeContainer: React.FC<MobileSwipeContainerProps> = ({
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="w-full overflow-hidden relative select-none"
+      className="w-full h-full overflow-hidden relative select-none"
     >
       {/* Horizontal Sliding Track */}
       <div
         ref={trackRef}
-        className="flex w-full will-change-transform"
+        className="flex w-full h-full will-change-transform items-start"
         style={{
           transform: `translateX(-${activeIndex * 100}%)`,
         }}
@@ -162,7 +162,7 @@ export const MobileSwipeContainer: React.FC<MobileSwipeContainerProps> = ({
         {views.map((v) => (
           <div
             key={v.id}
-            className="w-full shrink-0 min-h-[calc(100dvh-4rem)] px-3 sm:px-4 pt-3 pb-24"
+            className="w-full shrink-0 h-full overflow-y-auto px-3 sm:px-4 pt-2 pb-24 touch-pan-y scrollbar-none"
           >
             {v.component}
           </div>

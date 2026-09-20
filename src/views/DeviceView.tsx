@@ -49,7 +49,7 @@ export const DeviceView: React.FC<DeviceViewProps> = ({ dashboard }) => {
   }, []);
 
   return (
-    <div ref={containerRef} className="space-y-6 pb-12">
+    <div ref={containerRef} className="space-y-4 sm:space-y-6 pb-0 md:pb-12">
       {/* Top Banner: Device Overview & Status Action */}
       <div className="device-stagger-card p-6 rounded-2xl bg-gradient-to-r from-aura-surface to-aura-surface-active/30 border border-aura-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-4">

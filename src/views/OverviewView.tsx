@@ -80,7 +80,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   };
 
   return (
-    <div ref={containerRef} className="space-y-4 sm:space-y-6 pb-12">
+    <div ref={containerRef} className="space-y-4 sm:space-y-6 pb-0 md:pb-12">
       {/* Mobile Operator Context (Stitch Inspired - Hidden on Desktop) */}
       <div className="md:hidden flex flex-col gap-2 pt-1">
         <div className="flex items-center justify-between">

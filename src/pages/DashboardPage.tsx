@@ -161,20 +161,12 @@ export const DashboardPage: React.FC = () => {
       component: <MonitoringView dashboard={dashboard} />,
     },
     {
-      id: "assistant" as ViewId,
-      component: <BioAssistantView dashboard={dashboard} />,
-    },
-    {
       id: "device" as ViewId,
       component: <DeviceView dashboard={dashboard} />,
     },
     {
       id: "analytics" as ViewId,
       component: <AnalyticsView dashboard={dashboard} />,
-    },
-    {
-      id: "settings" as ViewId,
-      component: <SettingsView dashboard={dashboard} onViewChange={handleViewChange} />,
     },
   ];
 
@@ -260,12 +252,22 @@ export const DashboardPage: React.FC = () => {
           onLogout={handleLogout}
         />
 
-        <main ref={mobileMainRef} className="flex-1 overflow-y-auto pt-16 pb-6">
-          <MobileSwipeContainer
-            activeView={activeView}
-            onViewChange={handleViewChange}
-            views={mobileViews}
-          />
+        <main ref={mobileMainRef} className="flex-1 overflow-hidden pt-16 relative">
+          {activeView === "assistant" ? (
+            <div className="w-full h-full overflow-y-auto px-3 sm:px-4 pt-2 pb-24 touch-pan-y scrollbar-none">
+              <BioAssistantView dashboard={dashboard} />
+            </div>
+          ) : activeView === "settings" ? (
+            <div className="w-full h-full overflow-y-auto px-3 sm:px-4 pt-2 pb-24 touch-pan-y scrollbar-none">
+              <SettingsView dashboard={dashboard} onViewChange={handleViewChange} />
+            </div>
+          ) : (
+            <MobileSwipeContainer
+              activeView={activeView}
+              onViewChange={handleViewChange}
+              views={mobileViews}
+            />
+          )}
         </main>
 
         <MobileDockBar
