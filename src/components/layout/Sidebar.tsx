@@ -5,6 +5,7 @@ import {
   Activity,
   Cpu,
   BarChart3,
+  Bot,
   Settings,
   Radio,
   RefreshCw,
@@ -177,6 +178,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return <Cpu className="w-4 h-4" />;
       case "analytics":
         return <BarChart3 className="w-4 h-4" />;
+      case "assistant":
+        return <Bot className="w-4 h-4" />;
       case "settings":
         return <Settings className="w-4 h-4" />;
     }

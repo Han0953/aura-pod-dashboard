@@ -223,6 +223,11 @@ export const Topbar: React.FC<TopbarProps> = ({
           title: "Advanced Analytics",
           subtitle: "Agregasi statistik, korelasi sensor, dan pemodelan biologis kultur alga",
         };
+      case "assistant":
+        return {
+          title: "Bio-AI Assistant",
+          subtitle: "Analisis telemetri otonom dan konsultasi bioproses fotobioreaktor",
+        };
       case "settings":
         return {
           title: "Settings & Configurations",

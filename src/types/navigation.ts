@@ -1,4 +1,4 @@
-export type ViewId = "overview" | "monitoring" | "device" | "analytics" | "settings";
+export type ViewId = "overview" | "monitoring" | "device" | "analytics" | "assistant" | "settings";
 
 export interface NavItem {
   id: ViewId;

@@ -7,6 +7,7 @@ import { OverviewView } from "@/views/OverviewView";
 import { MonitoringView } from "@/views/MonitoringView";
 import { DeviceView } from "@/views/DeviceView";
 import { AnalyticsView } from "@/views/AnalyticsView";
+import { BioAssistantView } from "@/views/BioAssistantView";
 import { SettingsView } from "@/views/SettingsView";
 import { useDashboardData } from "@/services/dashboardService";
 import { ViewId } from "@/types/navigation";
@@ -42,6 +43,7 @@ export const DashboardPage: React.FC = () => {
           saved === "monitoring" ||
           saved === "device" ||
           saved === "analytics" ||
+          saved === "assistant" ||
           saved === "settings")
       ) {
         return saved as ViewId;
@@ -184,6 +186,10 @@ export const DashboardPage: React.FC = () => {
 
             {activeView === "analytics" && (
               <AnalyticsView dashboard={dashboard} />
+            )}
+
+            {activeView === "assistant" && (
+              <BioAssistantView dashboard={dashboard} />
             )}
 
             {activeView === "settings" && (
