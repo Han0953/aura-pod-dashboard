@@ -1,4 +1,19 @@
 export default async function handler(req, res) {
+  // Helper polyfills for local Node/Connect dev server
+  if (!res.status) {
+    res.status = function(code) {
+      res.statusCode = code;
+      return res;
+    };
+  }
+  if (!res.json) {
+    res.json = function(data) {
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify(data));
+      return res;
+    };
+  }
+
   // CORS & Security Headers
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -54,7 +69,17 @@ BATASAN PENTING & INTEGRITAS DATA:
 5. Gunakan Bahasa Indonesia yang lugas, ilmiah, solutif, dan ramah untuk presentasi teknis fotobioreaktor.`;
 
     const apiKey = process.env.GEMINI_API_KEY;
-    const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+    const primaryModel = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+
+    // Daftar kandidat model flash lite yang didukung Gemini API
+    const candidateModels = Array.from(
+      new Set([
+        primaryModel,
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-2.5-flash",
+      ])
+    );
 
     // Jika ada API Key, panggil Google Generative Language API
     if (apiKey) {
@@ -77,36 +102,42 @@ BATASAN PENTING & INTEGRITAS DATA:
           parts: [{ text: message }],
         });
 
-        // Request ke endpoint model flash-lite
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-        const geminiRes = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents,
-            systemInstruction: {
-              parts: [{ text: systemPrompt }],
-            },
-            generationConfig: {
-              temperature: 0.3,
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: 800,
-            },
-          }),
-        });
-
-        if (geminiRes.ok) {
-          const data = await geminiRes.json();
-          const replyText =
-            data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
-
-          if (replyText) {
-            return res.status(200).json({
-              success: true,
-              reply: replyText.trim(),
-              source: "engine",
+        for (const modelToTry of candidateModels) {
+          try {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelToTry}:generateContent?key=${apiKey}`;
+            const geminiRes = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents,
+                systemInstruction: {
+                  parts: [{ text: systemPrompt }],
+                },
+                generationConfig: {
+                  temperature: 0.3,
+                  topK: 40,
+                  topP: 0.95,
+                  maxOutputTokens: 800,
+                },
+              }),
             });
+
+            if (geminiRes.ok) {
+              const data = await geminiRes.json();
+              const replyText =
+                data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+
+              if (replyText) {
+                return res.status(200).json({
+                  success: true,
+                  reply: replyText.trim(),
+                  source: "engine",
+                });
+              }
+            }
+          } catch (modelErr) {
+            // Coba model berikutnya jika model ini gagal
+            continue;
           }
         }
       } catch (err) {
