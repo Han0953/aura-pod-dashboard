@@ -108,9 +108,22 @@ export const DashboardPage: React.FC = () => {
     }
   }, []);
 
+  // Verify authentication session
+  useEffect(() => {
+    try {
+      const isAuth = sessionStorage.getItem("aura_authenticated") === "true";
+      if (!isAuth) {
+        navigate("/login", { replace: true });
+      }
+    } catch {
+      // In case sessionStorage is blocked
+    }
+  }, [navigate]);
+
   const handleLogout = useCallback(() => {
     try {
       localStorage.removeItem("aura_active_view");
+      sessionStorage.removeItem("aura_authenticated");
     } catch {}
     navigate("/login");
   }, [navigate]);

@@ -1,15 +1,21 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
-import { Lock, User, ArrowRight, CheckCircle2, ShieldCheck, Sun, Moon } from "lucide-react";
+import { Lock, User, ArrowRight, CheckCircle2, ShieldCheck, Sun, Moon, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { cn } from "@/lib/utils";
+
+// Kredensial Resmi AURA Pod (dapat di-override via Environment Variables saat hosting)
+const AUTH_USERNAME = (import.meta.env.VITE_AUTH_USERNAME || "admin").trim().toLowerCase();
+const AUTH_PASSWORD = (import.meta.env.VITE_AUTH_PASSWORD || "aurapod2026").trim();
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -140,69 +146,111 @@ export const LoginPage: React.FC = () => {
     };
   }, []);
 
+  // Error Shake Animation with GSAP
+  const triggerErrorShake = () => {
+    if (!loginCardRef.current) return;
+    gsap.killTweensOf(loginCardRef.current);
+    gsap.fromTo(
+      loginCardRef.current,
+      { x: -9 },
+      {
+        x: 9,
+        duration: 0.07,
+        repeat: 5,
+        yoyo: true,
+        ease: "power2.inOut",
+        onComplete: () => {
+          if (loginCardRef.current) gsap.set(loginCardRef.current, { x: 0 });
+        },
+      }
+    );
+  };
+
   // 2. Rolling Door Login Trigger (GSAP Cinematic Door Split)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting || isSuccess) return;
 
+    setErrorMessage(null);
+
+    const inputUser = username.trim().toLowerCase();
+    const inputPass = password.trim();
+
+    if (!inputUser || !inputPass) {
+      setErrorMessage("Silakan masukkan username dan password.");
+      triggerErrorShake();
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // Instant auth verification
+    // Auth verification
     setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
+      if (inputUser === AUTH_USERNAME && inputPass === AUTH_PASSWORD) {
+        setIsSubmitting(false);
+        setIsSuccess(true);
+        setErrorMessage(null);
 
-      const isMobile = window.innerWidth < 768;
-      const tl = gsap.timeline({
-        onComplete: () => {
-          // Navigate cleanly to Dashboard page with entrance flag
-          navigate("/dashboard?entrance=1");
-        },
-      });
+        try {
+          sessionStorage.setItem("aura_authenticated", "true");
+        } catch {}
 
-      if (isMobile) {
-        // Mobile sheet dismiss animation
-        tl.to(loginCardRef.current, {
-          y: 80,
-          scale: 0.92,
-          opacity: 0,
-          duration: 0.5,
-          ease: "power3.inOut",
-        }).to(
-          containerRef.current,
-          {
-            opacity: 0,
-            duration: 0.35,
-            ease: "power2.out",
+        const isMobile = window.innerWidth < 768;
+        const tl = gsap.timeline({
+          onComplete: () => {
+            // Navigate cleanly to Dashboard page with entrance flag
+            navigate("/dashboard?entrance=1");
           },
-          "-=0.2"
-        );
-      } else {
-        // Desktop Rolling Door Split
-        tl.to(loginCardRef.current, {
-          scale: 0.95,
-          opacity: 0.8,
-          duration: 0.2,
-          ease: "power2.out",
-        })
-          .to(
-            leftDoorRef.current,
+        });
+
+        if (isMobile) {
+          // Mobile sheet dismiss animation
+          tl.to(loginCardRef.current, {
+            y: 80,
+            scale: 0.92,
+            opacity: 0,
+            duration: 0.5,
+            ease: "power3.inOut",
+          }).to(
+            containerRef.current,
             {
-              xPercent: -100,
-              duration: 0.85,
-              ease: "power3.inOut",
+              opacity: 0,
+              duration: 0.35,
+              ease: "power2.out",
             },
-            "+=0.05"
-          )
-          .to(
-            rightDoorRef.current,
-            {
-              xPercent: 100,
-              duration: 0.85,
-              ease: "power3.inOut",
-            },
-            "<" // simultaneous with left door
+            "-=0.2"
           );
+        } else {
+          // Desktop Rolling Door Split
+          tl.to(loginCardRef.current, {
+            scale: 0.95,
+            opacity: 0.8,
+            duration: 0.2,
+            ease: "power2.out",
+          })
+            .to(
+              leftDoorRef.current,
+              {
+                xPercent: -100,
+                duration: 0.85,
+                ease: "power3.inOut",
+              },
+              "+=0.05"
+            )
+            .to(
+              rightDoorRef.current,
+              {
+                xPercent: 100,
+                duration: 0.85,
+                ease: "power3.inOut",
+              },
+              "<" // simultaneous with left door
+            );
+        }
+      } else {
+        setIsSubmitting(false);
+        setErrorMessage("Username atau password salah. Cek kredensial Anda.");
+        triggerErrorShake();
       }
     }, 400);
   };
@@ -325,7 +373,7 @@ export const LoginPage: React.FC = () => {
 
         {/* Center Login Card Form */}
         <div ref={loginCardRef} className="max-w-md w-full mx-auto my-auto py-6">
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-aura-surface border border-aura-border text-[11px] font-mono text-aura-text-secondary mb-3">
               <ShieldCheck className="w-3.5 h-3.5 text-aura-primary" />
               Secure Bioreactor Console
@@ -334,9 +382,17 @@ export const LoginPage: React.FC = () => {
               Selamat Datang Kembali
             </h2>
             <p className="text-xs sm:text-sm text-aura-text-secondary mt-2">
-              Klik tombol masuk untuk mengakses panel kendali telemetri dan aktuator.
+              Masukkan kredensial operator untuk mengakses panel kendali telemetri dan aktuator.
             </p>
           </div>
+
+          {/* Error Alert Banner */}
+          {errorMessage && (
+            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2.5 animate-in fade-in duration-200">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+              <span className="leading-tight">{errorMessage}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username Field */}
@@ -351,9 +407,13 @@ export const LoginPage: React.FC = () => {
                 <input
                   type="text"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-aura-surface border border-aura-border text-sm text-aura-text-primary placeholder:text-aura-text-secondary/50 focus:outline-none focus:border-aura-primary focus:ring-1 focus:ring-aura-primary transition-all font-mono"
-                  placeholder="Username (opsional)"
+                  placeholder="Masukkan username..."
+                  autoComplete="username"
                 />
               </div>
             </div>
@@ -368,12 +428,29 @@ export const LoginPage: React.FC = () => {
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-aura-surface border border-aura-border text-sm text-aura-text-primary placeholder:text-aura-text-secondary/50 focus:outline-none focus:border-aura-primary focus:ring-1 focus:ring-aura-primary transition-all font-mono"
-                  placeholder="Password (opsional)"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
+                  className="w-full pl-10 pr-11 py-2.5 rounded-xl bg-aura-surface border border-aura-border text-sm text-aura-text-primary placeholder:text-aura-text-secondary/50 focus:outline-none focus:border-aura-primary focus:ring-1 focus:ring-aura-primary transition-all font-mono"
+                  placeholder="Masukkan password..."
+                  autoComplete="current-password"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-aura-text-secondary hover:text-aura-text-primary transition-colors cursor-pointer"
+                  tabIndex={-1}
+                  title={showPassword ? "Sembunyikan password" : "Lihat password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -394,7 +471,7 @@ export const LoginPage: React.FC = () => {
                   <span>Akses Diterima &mdash; Membuka Dashboard...</span>
                 </>
               ) : isSubmitting ? (
-                <span>Memverifikasi Node...</span>
+                <span>Memverifikasi Akses Node...</span>
               ) : (
                 <>
                   <span>Masuk ke Dashboard</span>
@@ -404,9 +481,9 @@ export const LoginPage: React.FC = () => {
             </button>
           </form>
 
-          {/* Quick Notice */}
+          {/* Secure System Notice */}
           <div className="mt-6 p-3 rounded-xl bg-aura-surface/60 border border-aura-border/70 text-[11px] text-aura-text-secondary text-center">
-            Mode cepat aktif: langsung klik <strong className="text-aura-primary">"Masuk ke Dashboard"</strong> untuk menyaksikan transisi sinematik.
+            Akses sistem telemetri terenkripsi. Hubungi administrator jika Anda mengalami kendala autentikasi.
           </div>
         </div>
 
