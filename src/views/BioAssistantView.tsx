@@ -32,6 +32,72 @@ const QUICK_PROMPTS = [
   "Jelaskan batasan operasional sensor DS18B20 & MQ-135",
 ];
 
+// Helper untuk merender teks dengan mengubah markdown **kata** menjadi teks tebal rapi tanpa tanda **
+const FormattedMessageContent: React.FC<{ content: string; isUser: boolean }> = ({ content, isUser }) => {
+  const lines = content.split("\n");
+
+  const parseLine = (line: string, lineKey: string | number) => {
+    // Membagi teks berdasarkan pola **teks**
+    const parts = line.split(/(\*\*.*?\*\*)/g);
+
+    return (
+      <span key={lineKey}>
+        {parts.map((part, index) => {
+          if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+            const boldText = part.slice(2, -2);
+            return (
+              <strong
+                key={index}
+                className={cn(
+                  "font-bold",
+                  isUser ? "text-black underline decoration-black/30" : "text-aura-primary font-semibold"
+                )}
+              >
+                {boldText}
+              </strong>
+            );
+          }
+          return part;
+        })}
+      </span>
+    );
+  };
+
+  return (
+    <div className="space-y-1.5 leading-relaxed">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          return <div key={idx} className="h-1" />;
+        }
+
+        // Bullet point dengan tanda - atau *
+        if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+          const bulletContent = trimmed.slice(2);
+          return (
+            <div key={idx} className="flex items-start gap-2 pl-0.5">
+              <span
+                className={cn(
+                  "w-1.5 h-1.5 rounded-full mt-1.5 shrink-0",
+                  isUser ? "bg-black" : "bg-aura-primary shadow-glow"
+                )}
+              />
+              <div className="flex-1">{parseLine(bulletContent, `bullet-${idx}`)}</div>
+            </div>
+          );
+        }
+
+        // Baris teks biasa
+        return (
+          <div key={idx} className="break-words">
+            {parseLine(line, `line-${idx}`)}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 export const BioAssistantView: React.FC<BioAssistantViewProps> = ({ dashboard }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -316,13 +382,13 @@ Ada yang ingin Anda analisis mengenai kondisi bioreaktor atau optimasi kultur mi
                 <div className="flex flex-col gap-1 max-w-[85%]">
                   <div
                     className={cn(
-                      "p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed whitespace-pre-line shadow-sm",
+                      "p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm",
                       isUser
                         ? "bg-aura-primary text-black font-medium rounded-tr-sm"
                         : "bg-aura-bg/80 border border-aura-border/80 text-aura-text-primary rounded-tl-sm backdrop-blur-sm"
                     )}
                   >
-                    {msg.content}
+                    <FormattedMessageContent content={msg.content} isUser={isUser} />
                   </div>
                   <span
                     className={cn(
