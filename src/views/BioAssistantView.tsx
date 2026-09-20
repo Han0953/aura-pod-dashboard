@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import gsap from "gsap";
 import {
-  Bot,
   Send,
   Sparkles,
   Thermometer,
@@ -246,25 +245,47 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
     <div ref={containerRef} className="space-y-6 pb-12">
       {/* ── 1. Header Block ── */}
       <div className="assistant-stagger-item flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-heading font-extrabold text-aura-text-primary tracking-tight">
-              AIRA
-            </h1>
-            <span className="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-aura-primary/15 text-aura-primary border border-aura-primary/30 flex items-center gap-1 shadow-glow">
-              <Sparkles className="w-3 h-3 text-aura-primary" />
-              AURA Intelligent Response Assistant
+        <div className="flex items-center gap-3.5">
+          <div className="relative shrink-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden border-2 border-aura-primary/40 shadow-glow bg-aura-surface-subtle">
+              <img
+                src="/aira.webp"
+                alt="AIRA"
+                className="w-full h-full object-cover object-top"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            </div>
+            {/* Indikator Status Aktif Menyala untuk AIRA */}
+            <span 
+              className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center"
+              title="AIRA Aktif & Siap Membantu"
+            >
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 border-2 border-aura-surface shadow-[0_0_8px_#34d399]" />
             </span>
           </div>
-          <p className="text-xs text-aura-text-secondary mt-1">
-            Pendamping cerdas fotobioreaktor berbasis telemetri sensor fisik riil secara otonom.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-heading font-extrabold text-aura-text-primary tracking-tight">
+                AIRA
+              </h1>
+              <span className="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-aura-primary/15 text-aura-primary border border-aura-primary/30 flex items-center gap-1 shadow-glow">
+                <Sparkles className="w-3 h-3 text-aura-primary" />
+                AURA Intelligent Response Assistant
+              </span>
+            </div>
+            <p className="text-xs text-aura-text-secondary mt-1">
+              Pendamping cerdas fotobioreaktor berbasis telemetri sensor fisik riil secara otonom.
+            </p>
+          </div>
         </div>
 
         <button
           type="button"
           onClick={handleResetChat}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-aura-surface hover:bg-aura-surface-subtle border border-aura-border text-aura-text-secondary hover:text-aura-text-primary transition-all cursor-pointer shadow-sm active:scale-95"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-aura-surface hover:bg-aura-surface-subtle border border-aura-border text-aura-text-secondary hover:text-aura-text-primary transition-all cursor-pointer shadow-sm active:scale-95 self-start md:self-auto"
           title="Mulai Sesi Baru"
         >
           <RotateCcw className="w-3.5 h-3.5" />
@@ -387,13 +408,24 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
                 {/* Avatar */}
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border text-xs shadow-sm",
+                    "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border text-xs shadow-sm overflow-hidden",
                     isUser
-                      ? "bg-aura-primary text-black border-aura-primary/50"
-                      : "bg-aura-surface-subtle text-aura-primary border-aura-primary/30"
+                      ? "bg-aura-primary text-black font-bold border-aura-primary/50"
+                      : "bg-aura-surface-subtle border-aura-primary/30"
                   )}
                 >
-                  {isUser ? "U" : <Bot className="w-4 h-4" />}
+                  {isUser ? (
+                    "U"
+                  ) : (
+                    <img
+                      src="/aira.webp"
+                      alt="AIRA"
+                      className="w-full h-full object-cover object-top"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  )}
                 </div>
 
                 {/* Message Bubble */}
@@ -424,8 +456,15 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
           {/* Thinking Indicator */}
           {isThinking && (
             <div className="flex gap-3 max-w-md mr-auto animate-in fade-in duration-200">
-              <div className="w-8 h-8 rounded-xl bg-aura-surface-subtle text-aura-primary border border-aura-primary/30 flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-xl bg-aura-surface-subtle border border-aura-primary/40 flex items-center justify-center shrink-0 overflow-hidden shadow-glow">
+                <img
+                  src="/aira.webp"
+                  alt="AIRA"
+                  className="w-full h-full object-cover object-top animate-pulse"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
               </div>
               <div className="p-3.5 rounded-2xl rounded-tl-sm bg-aura-bg/80 border border-aura-border/80 text-xs text-aura-text-secondary flex items-center gap-2">
                 <div className="flex items-center gap-1">
