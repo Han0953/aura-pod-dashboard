@@ -112,6 +112,29 @@ export const BioAssistantView: React.FC<BioAssistantViewProps> = ({ dashboard })
 
   const STORAGE_KEY = "aura_aira_chat_history";
 
+  const createInitialMessage = (): ChatMessage => ({
+    id: "msg-init",
+    role: "assistant",
+    content: isOnline
+      ? `Halo! Kenalin, aku AIRA (AURA Intelligent Response Assistant). Senang bisa nemenin kamu memantau fotobioreaktor mikroganggang AURA Pod hari ini!
+
+Saat ini telemetri fisik aktif yang aku pantau:
+- Suhu Kultur (DS18B20): ${currentTemp !== null ? `${currentTemp.toFixed(1)} °C` : "--"}
+- Indeks Gas (MQ-135): ${currentGas !== null ? `${currentGas} Idx` : "--"}
+- Status ESP32: Online
+
+Kira-kira ada yang mau kamu diskusikan atau tanyakan ke aku tentang kondisi kultur bioreaktormu hari ini?`
+      : `Halo! Kenalin, aku AIRA (AURA Intelligent Response Assistant). Maaf ya, saat ini mikrokontroler ESP32 kamu terpantau sedang offline, sehingga sensor suhu DS18B20 dan gas MQ-135 belum aktif mengirimkan data telemetri riil.
+
+Status Perangkat Keras:
+- Status ESP32: Offline (Tidak Terhubung)
+- Sensor Suhu (DS18B20): -- °C (Offline)
+- Sensor Gas (MQ-135): -- Idx (Offline)
+
+Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar aku bisa langsung bantu pantau kondisi bioreaktormu secara real-time!`,
+    timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+  });
+
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -125,30 +148,7 @@ export const BioAssistantView: React.FC<BioAssistantViewProps> = ({ dashboard })
       // Fallback jika localStorage diblokir atau error parsing
     }
 
-    return [
-      {
-        id: "msg-init",
-        role: "assistant",
-        content: isOnline
-          ? `Halo! Kenalin, aku AIRA (AURA Intelligent Response Assistant). Senang bisa nemenin kamu memantau fotobioreaktor mikroganggang AURA Pod hari ini!
-
-Saat ini telemetri fisik aktif yang aku pantau:
-- Suhu Kultur (DS18B20): ${currentTemp !== null ? `${currentTemp.toFixed(1)} °C` : "--"}
-- Indeks Gas (MQ-135): ${currentGas !== null ? `${currentGas} Idx` : "--"}
-- Status ESP32: Online
-
-Kira-kira ada yang mau kamu diskusikan atau tanyakan ke aku tentang kondisi kultur bioreaktormu hari ini?`
-          : `Halo! Kenalin, aku AIRA (AURA Intelligent Response Assistant). Maaf ya, saat ini mikrokontroler ESP32 kamu terpantau sedang offline, sehingga sensor suhu DS18B20 dan gas MQ-135 belum aktif mengirimkan data telemetri riil.
-
-Status Perangkat Keras:
-- Status ESP32: Offline (Tidak Terhubung)
-- Sensor Suhu (DS18B20): -- °C (Offline)
-- Sensor Gas (MQ-135): -- Idx (Offline)
-
-Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar aku bisa langsung bantu pantau kondisi bioreaktormu secara real-time!`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      },
-    ];
+    return [createInitialMessage()];
   });
 
   // Simpan riwayat chat ke localStorage secara otomatis setiap kali ada pesan baru
@@ -270,16 +270,7 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
       // Abaikan jika ada pembatasan localStorage
     }
 
-    setMessages([
-      {
-        id: `msg-${Date.now()}`,
-        role: "assistant",
-        content: isOnline
-          ? `Percakapan sudah aku atur ulang ya! Telemetri fisik riil saat ini: Suhu ${currentTemp !== null ? `${currentTemp.toFixed(1)} °C` : "--"} (DS18B20) dan Gas ${currentGas !== null ? `${currentGas} Idx` : "--"} (MQ-135). Ada yang mau kamu tanyakan ke aku?`
-          : `Percakapan sudah aku atur ulang ya. Saat ini ESP32 terpantau masih offline nih. Hubungkan node ESP32 kamu agar aku bisa membaca data sensor fisik riil ya!`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      },
-    ]);
+    setMessages([createInitialMessage()]);
   };
 
   const isTempOptimal = currentTemp !== null && currentTemp >= 21.0 && currentTemp <= 28.5;
