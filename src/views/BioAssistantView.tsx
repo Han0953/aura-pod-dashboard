@@ -119,17 +119,17 @@ export const BioAssistantView: React.FC<BioAssistantViewProps> = ({ dashboard })
       ? `Halo! Kenalin, aku AIRA (AURA Intelligent Response Assistant). Senang bisa nemenin kamu memantau fotobioreaktor mikroganggang AURA Pod hari ini!
 
 Saat ini telemetri fisik aktif yang aku pantau:
-- Suhu Kultur (DS18B20): ${currentTemp !== null ? `${currentTemp.toFixed(1)} °C` : "--"}
-- Indeks Gas (MQ-135): ${currentGas !== null ? `${currentGas} Idx` : "--"}
+- Culture Temperature (DS18B20): ${currentTemp !== null ? `${currentTemp.toFixed(1)} °C` : "--"} (Target awal: 22.0 – 30.0 °C)
+- Headspace Gas Index (MQ-135): ${currentGas !== null ? `${currentGas} Idx` : "--"} (Belum dikalibrasi)
 - Status ESP32: Online
 
 Kira-kira ada yang mau kamu diskusikan atau tanyakan ke aku tentang kondisi kultur bioreaktormu hari ini?`
-      : `Halo! Kenalin, aku AIRA (AURA Intelligent Response Assistant). Maaf ya, saat ini mikrokontroler ESP32 kamu terpantau sedang offline, sehingga sensor suhu DS18B20 dan gas MQ-135 belum aktif mengirimkan data telemetri riil.
+      : `Halo! Kenalin, aku AIRA (AURA Intelligent Response Assistant). Maaf ya, saat ini mikrokontroler ESP32 kamu terpantau sedang offline, sehingga sensor Culture Temperature DS18B20 dan Headspace Gas Index MQ-135 belum aktif mengirimkan data telemetri riil.
 
 Status Perangkat Keras:
 - Status ESP32: Offline (Tidak Terhubung)
-- Sensor Suhu (DS18B20): -- °C (Offline)
-- Sensor Gas (MQ-135): -- Idx (Offline)
+- Culture Temperature (DS18B20): -- °C (Offline)
+- Headspace Gas Index (MQ-135): -- Idx (Offline)
 
 Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar aku bisa langsung bantu pantau kondisi bioreaktormu secara real-time!`,
     timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -273,8 +273,7 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
     setMessages([createInitialMessage()]);
   };
 
-  const isTempOptimal = currentTemp !== null && currentTemp >= 21.0 && currentTemp <= 28.5;
-  const isGasOptimal = currentGas !== null && currentGas <= 200;
+  const isTempOptimal = currentTemp !== null && currentTemp >= 22.0 && currentTemp <= 30.0;
 
   return (
     <div ref={containerRef} className="space-y-4 sm:space-y-6 pb-0 md:pb-12">
@@ -344,7 +343,7 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
               </div>
               <div>
                 <span className="text-[10px] text-aura-text-secondary block font-mono uppercase">
-                  DS18B20 Suhu
+                  DS18B20 Suhu Kultur
                 </span>
                 <span className="text-sm font-heading font-bold text-aura-text-primary">
                   {isOnline && currentTemp !== null ? `${currentTemp.toFixed(1)} °C` : "-- °C"}
@@ -366,12 +365,12 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
 
             {/* Gas MQ-135 */}
             <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-aura-bg/70 border border-aura-border/60">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
                 <Wind className="w-4 h-4" />
               </div>
               <div>
                 <span className="text-[10px] text-aura-text-secondary block font-mono uppercase">
-                  MQ-135 Gas
+                  MQ-135 Gas Ruang Atas
                 </span>
                 <span className="text-sm font-heading font-bold text-aura-text-primary">
                   {isOnline && currentGas !== null ? `${currentGas} Idx` : "-- Idx"}
@@ -381,12 +380,10 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
                     "text-[9px] font-mono ml-1.5 px-1 py-0.2 rounded font-semibold",
                     !isOnline
                       ? "bg-zinc-500/10 text-zinc-400 border border-zinc-500/20"
-                      : isGasOptimal
-                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                      : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                      : "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
                   )}
                 >
-                  {!isOnline ? "Offline" : isGasOptimal ? "Stabil" : "Perhatian"}
+                  {!isOnline ? "Offline" : "Belum Dikalibrasi"}
                 </span>
               </div>
             </div>
@@ -585,38 +582,62 @@ Karena perangkatnya belum menyala atau belum tersambung, data sensor fisik suhu 
 Coba kamu periksa dan nyalakan modul ESP32-nya ya, lalu pastikan koneksi Wi-Fi sudah tersambung. Begitu online, aku bakal langsung bantu pantau kondisi bioreaktor kamu dengan senang hati!`;
   }
 
-  const isTempOptimal = temperature >= 21.0 && temperature <= 28.5;
-  const isGasOptimal = gasIndex !== null && gasIndex <= 200;
+  const isTempOptimal = temperature >= 22.0 && temperature <= 30.0;
+  const isTempCritical = temperature > 35.0;
+  const isTempHigh = temperature > 30.0;
+  const isTempLow = temperature < 20.0;
+  const isGasAvailable = gasIndex !== null;
 
   if (q.includes("ph") || q.includes("dissolved oxygen") || q.includes("do") || q.includes("oksigen terlarut")) {
-    return `Halo! Untuk saat ini, sensor fisik yang aktif dan terhubung ke ESP32 AURA Pod baru Sensor Suhu DS18B20 (${temperature.toFixed(1)} °C) dan Sensor Gas MQ-135 (${gasIndex} Idx) ya.
+    return `Halo! Untuk saat ini, sensor fisik yang aktif dan terhubung ke ESP32 AURA Pod baru Culture Temperature DS18B20 (${temperature.toFixed(1)} °C) dan Headspace Gas Index MQ-135 (${isGasAvailable ? `${gasIndex} Idx` : "Belum terbaca"}) ya.
 
-Kalau untuk parameter pH dan Dissolved Oxygen (DO), modulnya masih dalam tahap integrasi riset dan pengembangan (R&D) lanjutan. Jadi untuk sekarang, biar aku dampingi kamu fokus ke kestabilan suhu kultur dan kualitas udara bioreaktor dulu ya!`;
+Kalau untuk parameter pH dan Dissolved Oxygen (DO), modulnya masih dalam tahap integrasi riset dan pengembangan (R&D) lanjutan. Jadi untuk sekarang, biar aku dampingi kamu fokus ke kestabilan suhu kultur dan pemantauan gas ruang atas bioreaktor dulu ya!`;
   }
 
   if (q.includes("suhu") || q.includes("panas") || q.includes("dingin") || q.includes("temperature")) {
-    return `Biar aku bantu cek suhunya ya! Dari pembacaan sensor DS18B20, suhu kultur mikroganggang kamu saat ini berada di ${temperature.toFixed(1)} °C.
+    let tempStatus = "Optimal (Dalam Target)";
+    let tempAdvice = "Suhu kultur kamu berada di kisaran target yang nyaman untuk fotosintesis mikroalga. Pertahankan aerasi dan pencahayaan stabil ya!";
 
-- Status Suhu: ${isTempOptimal ? "Sangat Baik & Optimal" : temperature > 28.5 ? "Sedikit Hangat (Waspada)" : "Agak Dingin"}
-- Rentang Ideal: 21.0 °C – 28.5 °C.
-- Catatan dari Aku: ${isTempOptimal ? "Suhu kultur kamu stabil dan nyaman banget untuk fotosintesis mikroalga. Pertahankan aerasi dan pencahayaan seperti ini ya!" : temperature > 28.5 ? "Suhunya sedikit di atas batas nyaman nih. Coba kamu cek aerasi atau atur jarak lampu grow light agar kultur alga kamu tidak kepanasan ya." : "Suhunya agak rendah, metabolisme mikroalga bisa sedikit melambat. Pastikan sirkulasi ruangan tetap hangat ya."}`;
+    if (isTempCritical) {
+      tempStatus = "Kritis (Suhu Sangat Tinggi)";
+      tempAdvice = "Suhu kultur melebihi 35°C! Kondisi ini berisiko merusak struktur sel mikroalga. Segera kurangi intensitas grow light dan tingkatkan pendinginan ruang atau sirkulasi aerasi ya!";
+    } else if (isTempHigh) {
+      tempStatus = "Tinggi (Di Atas Target)";
+      tempAdvice = "Suhu berada di atas batas target 30°C. Coba periksa jarak lampu penerangan atau ventilasi di sekitar pod kultur agar suhu tidak terus naik.";
+    } else if (isTempLow) {
+      tempStatus = "Rendah (Di Bawah Batas Minimum)";
+      tempAdvice = "Suhu kultur di bawah 20°C. Laju metabolisme dan pembelahan sel alga bisa melambat. Pastikan suhu lingkungan ruangan tetap hangat dan terjaga.";
+    } else if (temperature < 22.0) {
+      tempStatus = "Di Bawah Target Awal";
+      tempAdvice = "Suhu sedikit di bawah target awal 22°C, namun masih dalam batas toleransi. Terus pantau perkembangannya ya.";
+    }
+
+    return `Biar aku bantu cek suhunya ya! Dari pembacaan sensor DS18B20, Culture Temperature mikroganggang kamu saat ini berada di ${temperature.toFixed(1)} °C.
+
+- Status Suhu: ${tempStatus}
+- Kisaran Target Awal: 22.0 °C – 30.0 °C
+- Ambang Pemantauan: <20°C rendah, >30°C tinggi, >35°C kritis
+- Catatan dari Aku: ${tempAdvice}
+(Sebagai pengingat, ambang batas ini adalah panduan awal dan dapat disesuaikan dengan strain atau kondisi kultur mikroganggang kamu ya!)`;
   }
 
-  if (q.includes("gas") || q.includes("udara") || q.includes("co2") || q.includes("mq-135") || q.includes("aqi")) {
-    return `Ini hasil pemantauan gas untuk kamu! Dari sensor MQ-135, indeks kualitas udara bioreaktor sekarang terbaca di angka ${gasIndex} Idx.
+  if (q.includes("gas") || q.includes("udara") || q.includes("co2") || q.includes("mq-135") || q.includes("headspace") || q.includes("aqi")) {
+    return `Ini hasil pemantauan gas ruang atas untuk kamu! Dari sensor MQ-135, Headspace Gas Index saat ini terbaca di angka ${isGasAvailable ? `${gasIndex} Idx` : "Belum terbaca"}.
 
-- Status Kualitas Udara: ${isGasOptimal ? "Segar & Terkendali" : "Ada Kenaikan Konsentrasi Gas"}
-- Batas Normal: 0 – 200 Idx.
-- Analisis Aku: ${isGasOptimal ? "Kondisi sirkulasi gas sangat bagus dan aman kok. Pertukaran gas mikroalga berjalan lancar dan seimbang." : "Konsentrasi gas terpantau sedikit naik. Coba pastikan ventilasi dan sistem aerasi bioreaktor kamu mengalir lancar ya."}`;
+- Label Metrik: Headspace Gas Index (MQ-135)
+- Satuan: Idx (Indeks respons resistansi relatif)
+- Status Kalibrasi: Belum dikalibrasi (Peringatan otomatis dinonaktifkan)
+- Ambang Internal Sementara: 0 – 200 Idx
+- Catatan Penting: Nilai ini merupakan indikator respons relatif sensor terhadap uap/gas di headspace fotobioreaktor, bukan pengukuran CO2 ppm atau AQI standar lingkungan. Jangan jadikan angka ini sebagai nilai terukur tervalidasi sebelum dilakukan kalibrasi laboratorium ya!`;
   }
 
   return `Halo! Ini rangkuman kondisi fotobioreaktor AURA Pod yang baru saja aku pantau untuk kamu:
 
 1. Status Perangkat ESP32: ${deviceOnline ? "Online & Terhubung Lancar" : "Offline"} (Waktu aktif: ${uptime})
-2. Suhu Kultur (DS18B20): ${temperature.toFixed(1)} °C — ${isTempOptimal ? "Kondisi sangat optimal untuk pertumbuhan mikroalga" : "Perlu sedikit perhatian pada suhu"}
-3. Indeks Gas (MQ-135): ${gasIndex} Idx — ${isGasOptimal ? "Kualitas udara headspace aman dan bersih" : "Terdeteksi sedikit peningkatan konsentrasi gas"}
+2. Culture Temperature (DS18B20): ${temperature.toFixed(1)} °C — Target awal 22.0 – 30.0 °C (${isTempOptimal ? "Kondisi optimal" : isTempHigh ? "Suhu tinggi" : isTempLow ? "Suhu rendah" : "Perlu penyesuaian"})
+3. Headspace Gas Index (MQ-135): ${isGasAvailable ? `${gasIndex} Idx` : "--"} — Indikator relatif sensor gas ruang atas (Status: Belum dikalibrasi)
 
-Sebagai catatan, data ini murni dari sensor fisik riil ya. Modul sensor tambahan seperti pH dan DO masih dalam tahap pengembangan R&D. Ada hal lain yang mau kamu tanyakan ke aku?`;
+Sebagai catatan, ambang suhu merupakan panduan awal yang fleksibel, dan respons MQ-135 adalah indikator internal relatif headspace tanpa klaim AQI/CO2 ppm. Ada hal lain yang mau kamu tanyakan ke aku?`;
 }
 
 export default BioAssistantView;

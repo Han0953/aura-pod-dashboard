@@ -80,7 +80,7 @@ function buildTelemetryDataForRange(
   }
 
   const safeTemp = currentTemp > 0 ? currentTemp : 25.0;
-  // If currentGas is provided and > 0, use it; otherwise provide a standard photobioreactor ambient baseline (~140 AQI)
+  // If currentGas is provided and > 0, use it; otherwise provide a standard photobioreactor ambient baseline (~140 Idx)
   const baseGas = currentGas !== null && currentGas > 0 ? currentGas : 138;
 
   if (range === "1H") {
@@ -552,28 +552,29 @@ export function useDashboardData(): DashboardContextType {
         }
 
         if (blynkData && isOnline) {
-          // Check sensor telemetry thresholds
-          if (blynkData.temperature > 30.0) {
+          // Check sensor telemetry thresholds: Suhu Kultur
+          if (blynkData.temperature > 35.0) {
+            addNotification({
+              title: "Peringatan Suhu Kritis",
+              message: `Suhu kultur terdeteksi ${blynkData.temperature}°C (melebihi ambang batas kritis 35.0°C). Segera periksa pendingin/aerasi.`,
+              severity: "error",
+            });
+          } else if (blynkData.temperature > 30.0) {
             addNotification({
               title: "Peringatan Suhu Tinggi",
-              message: `Suhu terdeteksi ${blynkData.temperature}°C (di atas ambang batas optimal).`,
+              message: `Suhu kultur terdeteksi ${blynkData.temperature}°C (di atas target optimal 22.0 – 30.0°C).`,
               severity: "warning",
             });
           } else if (blynkData.temperature < 20.0 && blynkData.temperature > 0) {
             addNotification({
               title: "Peringatan Suhu Rendah",
-              message: `Suhu terdeteksi ${blynkData.temperature}°C (di bawah ambang batas optimal).`,
+              message: `Suhu kultur terdeteksi ${blynkData.temperature}°C (di bawah ambang batas awal 20.0°C).`,
               severity: "warning",
             });
           }
 
-          if (blynkData.gasIndex !== null && blynkData.gasIndex > 250) {
-            addNotification({
-              title: "Indeks Gas Meningkat",
-              message: `MQ-135 mencatat ${blynkData.gasIndex} AQI. Dianjurkan menyalakan aerator.`,
-              severity: "warning",
-            });
-          }
+          // Catatan integritas: Peringatan otomatis MQ-135 dinonaktifkan sementara
+          // karena sensor belum dikalibrasi baseline dan hanya mengukur respons resistansi relatif ruang atas.
 
           setSensorData({
             temperature: blynkData.temperature,

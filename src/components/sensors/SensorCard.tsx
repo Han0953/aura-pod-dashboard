@@ -8,6 +8,9 @@ interface SensorCardProps {
   value: number | string | null;
   unit?: string;
   status: StatusVariant;
+  statusLabel?: string;
+  targetRange?: string;
+  note?: string;
   icon: React.ReactNode;
   colorTheme?: "mint" | "cyan" | "amber" | "emerald";
   sparkline?: "temp" | "gas" | "none";
@@ -20,6 +23,9 @@ export const SensorCard: React.FC<SensorCardProps> = ({
   value,
   unit = "",
   status,
+  statusLabel,
+  targetRange,
+  note,
   icon,
   colorTheme = "mint",
   sparkline = "none",
@@ -80,7 +86,7 @@ export const SensorCard: React.FC<SensorCardProps> = ({
 
         <StatusBadge
           variant={offline ? "offline" : status}
-          label={offline ? "Offline" : undefined}
+          label={offline ? "Offline" : statusLabel || undefined}
         />
       </div>
 
@@ -157,13 +163,21 @@ export const SensorCard: React.FC<SensorCardProps> = ({
       </div>
 
       {/* Telemetry Status & Metadata Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-aura-border/60 text-xs text-aura-text-secondary">
-        <span className="text-[11px] text-aura-text-secondary">
-          {offline ? "Perangkat Terputus" : "Telemetri Aktif"}
-        </span>
-        <span className="text-[10px] text-aura-text-secondary font-mono">
-          {offline ? "Siaga (Standby)" : "Polling 10d"}
-        </span>
+      <div className="flex flex-col gap-1.5 pt-2 border-t border-aura-border/60 text-xs">
+        {targetRange && !offline && (
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="text-aura-text-secondary">Target Awal:</span>
+            <span className="font-mono font-semibold text-aura-text-primary">{targetRange}</span>
+          </div>
+        )}
+        <div className="flex items-center justify-between text-aura-text-secondary">
+          <span className="text-[10px] text-aura-text-secondary truncate max-w-[200px]" title={note}>
+            {offline ? "Perangkat Terputus" : note || "Telemetri Aktif"}
+          </span>
+          <span className="text-[10px] text-aura-text-secondary font-mono shrink-0">
+            {offline ? "Siaga (Standby)" : "Polling 5d"}
+          </span>
+        </div>
       </div>
     </div>
   );

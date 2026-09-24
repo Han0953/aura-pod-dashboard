@@ -4,13 +4,11 @@ import {
   Thermometer,
   Wind,
   Download,
-  TrendingUp,
   Table as TableIcon,
 } from "lucide-react";
 import { SensorChart } from "@/components/sensors/SensorChart";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { DashboardContextType } from "@/services/dashboardService";
-import { SENSOR_THRESHOLDS } from "@/lib/constants";
 
 interface MonitoringViewProps {
   dashboard: DashboardContextType;
@@ -52,24 +50,27 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
   }, []);
 
   // Temperature status calculation
-  const getTempStatus = () => {
-    if (isOffline) return "offline";
-    if (
-      sensorData.temperature < SENSOR_THRESHOLDS.temperature.optimalMin ||
-      sensorData.temperature > SENSOR_THRESHOLDS.temperature.optimalMax
-    ) {
-      return "warning";
-    }
-    return "normal";
+  // Target awal: 22.0 - 30.0 °C. Ambang: <20°C rendah, >30°C tinggi, >35°C kritis
+  const getTempStatusInfo = () => {
+    if (isOffline) return { variant: "offline" as const, label: "Offline" };
+    const temp = sensorData.temperature;
+    if (temp <= 0) return { variant: "offline" as const, label: "Offline" };
+    if (temp > 35.0) return { variant: "error" as const, label: "Kritis (>35°C)" };
+    if (temp > 30.0) return { variant: "warning" as const, label: "Tinggi (>30°C)" };
+    if (temp < 20.0) return { variant: "warning" as const, label: "Rendah (<20°C)" };
+    if (temp < 22.0) return { variant: "warning" as const, label: "Di Bawah Target" };
+    return { variant: "normal" as const, label: "Optimal (22–30°C)" };
   };
 
-  // Gas index status calculation
-  const getGasStatus = () => {
-    if (isOffline) return "offline";
-    if (sensorData.gasIndex === null) return "unavailable";
-    if (sensorData.gasIndex > 200) return "warning";
-    return "normal";
+  // Gas index status: Indikator relatif respons sensor gas, belum dikalibrasi
+  const getGasStatusInfo = () => {
+    if (isOffline) return { variant: "offline" as const, label: "Offline" };
+    if (sensorData.gasIndex === null) return { variant: "unavailable" as const, label: "Tidak Terbaca" };
+    return { variant: "uncalibrated" as const, label: "Belum Dikalibrasi" };
   };
+
+  const tempStatus = getTempStatusInfo();
+  const gasStatus = getGasStatusInfo();
 
   // Compute dynamic stats from real telemetry data
   const tempValues = telemetryHistory
@@ -107,8 +108,8 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
                   </div>
                 </div>
                 <StatusBadge
-                  variant={getTempStatus()}
-                  label={isOffline ? "Offline" : getTempStatus() === "warning" ? "Attention" : "Optimal"}
+                  variant={tempStatus.variant}
+                  label={tempStatus.label}
                 />
               </div>
 
@@ -121,9 +122,9 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
                     °C
                   </span>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-aura-primary font-mono">
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  <span>Live Stream</span>
+                <div className="flex flex-col items-end text-xs font-mono">
+                  <span className="text-aura-primary font-semibold">Target: 22.0 – 30.0 °C</span>
+                  <span className="text-[10px] text-aura-text-secondary">Panduan Awal Kultur</span>
                 </div>
               </div>
             </div>
@@ -131,10 +132,10 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
             <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-aura-border text-xs">
               <div className="flex flex-col">
                 <span className="text-[10px] font-mono text-aura-text-secondary">
-                  Min / Max (Sesi Rill)
+                  Min / Max (Sesi Riil)
                 </span>
                 <span className="font-mono font-bold text-aura-text-primary mt-0.5">
-                  {minTemp}° / {maxTemp}°
+                  {minTemp}° / {maxTemp}° C
                 </span>
               </div>
               <div className="flex flex-col">
@@ -160,16 +161,16 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
                   </div>
                   <div>
                     <h3 className="font-heading text-sm font-bold text-aura-text-primary">
-                      Gas Quality Index
+                      Headspace Gas Index (MQ-135)
                     </h3>
                     <span className="text-[10px] text-aura-text-secondary font-mono uppercase tracking-wider">
-                      MQ-135 Indicator
+                      MQ-135 Relative Response
                     </span>
                   </div>
                 </div>
                 <StatusBadge
-                  variant={getGasStatus()}
-                  label={isOffline ? "Offline" : getGasStatus() === "warning" ? "Caution" : "Nominal"}
+                  variant={gasStatus.variant}
+                  label={gasStatus.label}
                 />
               </div>
 
@@ -178,10 +179,11 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
                   <span className="font-heading text-3xl font-bold text-aura-text-primary tabular-nums">
                     {isOffline ? "--" : (sensorData.gasIndex ?? 0)}
                   </span>
-                  <span className="text-sm font-medium text-aura-amber">AQI Idx</span>
+                  <span className="text-sm font-medium text-aura-amber">Idx</span>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-aura-amber font-mono">
-                  <span>Rel. Diffusion</span>
+                <div className="flex flex-col items-end text-xs font-mono">
+                  <span className="text-aura-amber">Respons Relatif</span>
+                  <span className="text-[10px] text-aura-text-secondary">Bukan CO₂ ppm / AQI</span>
                 </div>
               </div>
             </div>
@@ -189,10 +191,10 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
             <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-aura-border text-xs">
               <div className="flex flex-col">
                 <span className="text-[10px] font-mono text-aura-text-secondary">
-                  Min / Max (Sesi Rill)
+                  Min / Max (Sesi Riil)
                 </span>
                 <span className="font-mono font-bold text-aura-text-primary mt-0.5">
-                  {minGas} / {maxGas} AQI
+                  {minGas} / {maxGas} Idx
                 </span>
               </div>
               <div className="flex flex-col">
@@ -255,7 +257,7 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
                 <tr className="border-b border-aura-border text-aura-text-secondary uppercase tracking-wider font-mono text-[11px]">
                   <th className="pb-3 font-semibold">Timestamp</th>
                   <th className="pb-3 font-semibold">Culture Temp (°C)</th>
-                  <th className="pb-3 font-semibold">Gas Index (AQI)</th>
+                  <th className="pb-3 font-semibold">Gas Index (MQ-135 Idx)</th>
                   <th className="pb-3 font-semibold">Status Verification</th>
                 </tr>
               </thead>
@@ -279,7 +281,7 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
                         {point.temperature} °C
                       </td>
                       <td className="py-3 text-aura-amber font-bold tabular-nums">
-                        {point.gasIndex} AQI
+                        {point.gasIndex} Idx
                       </td>
                       <td className="py-3">
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-aura-surface-active text-aura-primary text-[10px] border border-aura-primary/30">

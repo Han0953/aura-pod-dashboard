@@ -221,20 +221,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
                 </span>
               </div>
               <p className="text-[11px] text-aura-text-secondary mt-1">
-                Jendela pertumbuhan optimal untuk kultur mikroalga <i>Chlorella vulgaris</i>.
+                Ambang pemantauan awal: &lt;20°C rendah, 22–30°C optimal, &gt;30°C tinggi, &gt;35°C kritis (panduan awal adaptasi kultur).
               </p>
             </div>
 
             <div className="mt-4 space-y-1.5">
               <div className="flex justify-between text-[10px] font-mono text-aura-text-secondary">
-                <span>Min: {SENSOR_THRESHOLDS.temperature.min}°C</span>
-                <span className="text-aura-primary font-bold">Optimal 22.0 – 26.0°C</span>
-                <span>Max: {SENSOR_THRESHOLDS.temperature.max}°C</span>
+                <span>Rendah: &lt;20°C</span>
+                <span className="text-aura-primary font-bold">Target Awal: 22.0 – 30.0°C</span>
+                <span>Kritis: &gt;35°C</span>
               </div>
               <div className="h-2 w-full bg-aura-surface rounded-full overflow-hidden flex border border-aura-border">
-                <div className="w-[28%] bg-aura-amber/60" title="Sub-optimal low" />
-                <div className="w-[30%] bg-aura-primary shadow-glow" title="Optimal range" />
-                <div className="w-[42%] bg-aura-amber/60" title="Sub-optimal high" />
+                <div className="w-[20%] bg-aura-amber/60" title="Rendah (<20°C)" />
+                <div className="w-[10%] bg-aura-amber/40" title="Di Bawah Target (20-22°C)" />
+                <div className="w-[40%] bg-aura-primary shadow-glow" title="Target Optimal (22-30°C)" />
+                <div className="w-[15%] bg-aura-amber/60" title="Tinggi (>30°C)" />
+                <div className="w-[15%] bg-red-500/70" title="Kritis (>35°C)" />
               </div>
             </div>
           </div>
@@ -251,21 +253,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ dashboard, onViewCha
                 </span>
               </div>
               <p className="text-[11px] text-aura-text-secondary mt-1">
-                Metrik pertukaran gas/udara relatif (AQI Idx). Peringatan otomatis aktif jika melampaui 200 Idx.
+                Indikator relatif respons sensor gas ruang atas, bukan pengukuran CO₂ ppm atau AQI standar. Peringatan otomatis dinonaktifkan hingga kalibrasi baseline terverifikasi.
               </p>
             </div>
 
             <div className="mt-4 space-y-1.5">
               <div className="flex justify-between text-[10px] font-mono text-aura-text-secondary">
-                <span>Baseline: {SENSOR_THRESHOLDS.gasIndex.min}</span>
-                <span className="text-aura-amber font-bold">Nominal 100 – 180 Idx</span>
-                <span>Critical: {SENSOR_THRESHOLDS.gasIndex.max}</span>
+                <span>Rentang Dinamis: 0</span>
+                <span className="text-aura-amber font-bold">Ambang Internal Sementara: 0 – 200 Idx</span>
+                <span>Batas Skala: 400 Idx</span>
               </div>
               <div className="h-2 w-full bg-aura-surface rounded-full overflow-hidden flex border border-aura-border">
-                <div className="w-[20%] bg-aura-surface-subtle" />
-                <div className="w-[35%] bg-aura-primary/70" />
-                <div className="w-[25%] bg-aura-amber" />
-                <div className="w-[20%] bg-red-500/70" />
+                <div className="w-[50%] bg-aura-primary/50" title="Rentang Operasional Sementara (0-200 Idx)" />
+                <div className="w-[25%] bg-aura-amber/50" title="Rentang Fluktuasi Lanjutan (200-300 Idx)" />
+                <div className="w-[25%] bg-aura-surface-subtle" title="Batas Skala Atas" />
               </div>
             </div>
           </div>

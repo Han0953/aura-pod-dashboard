@@ -12,20 +12,28 @@ export const APP_CONFIG = {
 
 export const SENSOR_THRESHOLDS = {
   temperature: {
-    min: 18.0,
-    max: 35.0,
-    optimalMin: 21.0,
-    optimalMax: 28.5,
+    label: "Culture Temperature",
+    min: 15.0,
+    max: 40.0,
+    lowAlert: 20.0,
+    optimalMin: 22.0,
+    optimalMax: 30.0,
+    highAlert: 30.0,
+    criticalAlert: 35.0,
     unit: "°C",
-    toleranceStr: "21.0 – 28.5 °C",
+    toleranceStr: "22.0 – 30.0 °C",
+    note: "Ambang pemantauan awal (panduan awal yang dapat disesuaikan dengan kondisi kultur)",
   },
   gasIndex: {
+    label: "Headspace Gas Index (MQ-135)",
     min: 0,
     max: 400,
     optimalMin: 0,
     optimalMax: 200,
-    unit: "AQI Idx",
-    toleranceStr: "0 – 200 Idx",
+    unit: "Idx",
+    toleranceStr: "0 – 200 Idx (Ambang Sementara)",
+    calibrated: false,
+    note: "Indikator relatif respons sensor gas ruang atas, bukan pengukuran CO₂ ppm atau AQI standar",
   },
 };
 

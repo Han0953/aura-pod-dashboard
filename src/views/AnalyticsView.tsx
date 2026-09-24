@@ -141,7 +141,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
     return buckets;
   }, [tempValues]);
 
-  // Scatter Correlation Data: Temp (°C) vs Gas Index (AQI Idx)
+  // Scatter Correlation Data: Temp (°C) vs Headspace Gas Index (Idx)
   const correlationData = useMemo(() => {
     return telemetryHistory
       .filter((p) => typeof p.temperature === "number" && p.gasIndex !== null)
@@ -156,7 +156,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
   const handleExportCSV = () => {
     if (!telemetryHistory.length) return;
 
-    const headers = ["Timestamp", "TimeLabel", "Temperature_Celsius", "GasIndex_AQI_Idx"];
+    const headers = ["Timestamp", "TimeLabel", "Culture_Temperature_Celsius", "Headspace_Gas_Index_Idx"];
     const rows = telemetryHistory.map((pt) => [
       pt.timestamp,
       `"${pt.timeLabel}"`,
@@ -265,7 +265,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
           </div>
         </div>
 
-        {/* Card 2: Peak Gas Index (MQ-135 AQI Idx) */}
+        {/* Card 2: Peak Gas Index (MQ-135 Idx) */}
         <div className="analytics-stagger-card bg-aura-surface border border-aura-border rounded-2xl p-5 shadow-sm transition-colors">
           <div className="flex items-center justify-between text-aura-text-secondary">
             <span className="text-xs font-medium uppercase tracking-wider">Peak Gas Index</span>
@@ -280,8 +280,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
             <span className="text-xs text-aura-text-secondary font-mono">Idx (Avg: {avgGasIndex})</span>
           </div>
           <div className="mt-2 text-[11px] text-aura-text-secondary flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-aura-amber" />
-            <span>Metrik AQI relatif (MQ-135)</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+            <span>Respons relatif MQ-135 (Belum dikalibrasi)</span>
           </div>
         </div>
 
@@ -417,11 +417,11 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
                 </h3>
               </div>
               <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-aura-surface-subtle border border-aura-border text-aura-amber">
-                AQI Idx
+                Idx
               </span>
             </div>
             <p className="text-xs text-aura-text-secondary mt-1">
-              Fluktuasi relatif pertukaran gas dari waktu ke waktu (Catatan: Indikator relatif MQ-135, bukan ppm CO₂).
+              Fluktuasi relatif respons sensor gas dari waktu ke waktu (Catatan: Indikator relatif respons sensor MQ-135, bukan ppm CO₂ atau AQI standar).
             </p>
           </div>
 
@@ -498,7 +498,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ dashboard }) => {
               </h3>
             </div>
             <p className="text-xs text-aura-text-secondary mt-1">
-              Distribusi sebaran korelasi antara suhu kultur (°C) terhadap indeks gas headspace (AQI Idx)
+              Distribusi sebaran korelasi antara suhu kultur (°C) terhadap indeks gas ruang atas (Idx)
             </p>
           </div>
           <span className="text-xs font-mono text-aura-text-secondary self-start sm:self-auto">

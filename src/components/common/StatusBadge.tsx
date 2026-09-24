@@ -9,7 +9,8 @@ export type StatusVariant =
   | "error"
   | "active"
   | "inactive"
-  | "unavailable";
+  | "unavailable"
+  | "uncalibrated";
 
 interface StatusBadgeProps {
   variant: StatusVariant;
@@ -55,6 +56,13 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
           text: label || (variant === "offline" ? "Offline" : "Inactive"),
           bg: "bg-aura-surface-subtle text-aura-text-secondary border border-aura-border",
           dot: "bg-aura-text-secondary/60",
+          pulse: false,
+        };
+      case "uncalibrated":
+        return {
+          text: label || "Belum dikalibrasi",
+          bg: "bg-blue-500/10 text-blue-400 border border-blue-500/25",
+          dot: "bg-blue-400/80",
           pulse: false,
         };
       case "unavailable":

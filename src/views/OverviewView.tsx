@@ -7,7 +7,6 @@ import { DeviceStatusCard } from "@/components/device/DeviceStatusCard";
 import { ActuatorControl } from "@/components/device/ActuatorControl";
 import { CarbonMetricCard } from "@/components/mrv/CarbonMetricCard";
 import { DashboardContextType } from "@/services/dashboardService";
-import { SENSOR_THRESHOLDS } from "@/lib/constants";
 
 interface OverviewViewProps {
   dashboard: DashboardContextType;
@@ -60,24 +59,27 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   }, []);
 
   // Temperature status calculation
-  const getTempStatus = () => {
-    if (isOffline) return "offline";
-    if (
-      sensorData.temperature < SENSOR_THRESHOLDS.temperature.optimalMin ||
-      sensorData.temperature > SENSOR_THRESHOLDS.temperature.optimalMax
-    ) {
-      return "warning";
-    }
-    return "normal";
+  // Target awal: 22.0 - 30.0 °C. Ambang: <20°C rendah, >30°C tinggi, >35°C kritis
+  const getTempStatusInfo = () => {
+    if (isOffline) return { variant: "offline" as const, label: "Offline" };
+    const temp = sensorData.temperature;
+    if (temp <= 0) return { variant: "offline" as const, label: "Offline" };
+    if (temp > 35.0) return { variant: "error" as const, label: "Kritis (>35°C)" };
+    if (temp > 30.0) return { variant: "warning" as const, label: "Tinggi (>30°C)" };
+    if (temp < 20.0) return { variant: "warning" as const, label: "Rendah (<20°C)" };
+    if (temp < 22.0) return { variant: "warning" as const, label: "Di Bawah Target" };
+    return { variant: "normal" as const, label: "Optimal (22–30°C)" };
   };
 
-  // Gas index status calculation
-  const getGasStatus = () => {
-    if (isOffline) return "offline";
-    if (sensorData.gasIndex === null) return "unavailable";
-    if (sensorData.gasIndex > 200) return "warning";
-    return "normal";
+  // Gas index status: Indikator relatif respons sensor gas, belum dikalibrasi
+  const getGasStatusInfo = () => {
+    if (isOffline) return { variant: "offline" as const, label: "Offline" };
+    if (sensorData.gasIndex === null) return { variant: "unavailable" as const, label: "Tidak Terbaca" };
+    return { variant: "uncalibrated" as const, label: "Belum Dikalibrasi" };
   };
+
+  const tempStatus = getTempStatusInfo();
+  const gasStatus = getGasStatusInfo();
 
   return (
     <div ref={containerRef} className="space-y-4 sm:space-y-6 pb-0 md:pb-12">
@@ -112,7 +114,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             hardwareSensor="DS18B20 1-Wire"
             value={sensorData.temperature}
             unit="°C"
-            status={getTempStatus()}
+            status={tempStatus.variant}
+            statusLabel={tempStatus.label}
+            targetRange="22.0 – 30.0 °C"
+            note="Panduan awal kultur alga"
             icon={<Thermometer className="w-5 h-5 text-aura-primary" />}
             colorTheme="mint"
             sparkline="temp"
@@ -120,14 +125,17 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           />
         </div>
 
-        {/* Card 2: MQ-135 Gas Index (Air Quality indication) */}
+        {/* Card 2: MQ-135 Gas Index (Headspace relative response) */}
         <div className="dashboard-stagger-card">
           <SensorCard
-            title="Gas Quality Index"
-            hardwareSensor="MQ-135 Relative Idx"
+            title="Headspace Gas Index (MQ-135)"
+            hardwareSensor="MQ-135 Relative Response"
             value={sensorData.gasIndex}
-            unit="AQI"
-            status={getGasStatus()}
+            unit="Idx"
+            status={gasStatus.variant}
+            statusLabel={gasStatus.label}
+            targetRange="0 – 200 Idx (Ambang Sementara)"
+            note="Bukan CO₂ ppm / AQI standar"
             icon={<Wind className="w-5 h-5 text-aura-amber" />}
             colorTheme="amber"
             sparkline="gas"

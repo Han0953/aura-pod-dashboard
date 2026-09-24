@@ -194,7 +194,7 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
           id: `tx-${Date.now()}`,
           time: now,
           type: "tx",
-          message: `[TX] Frame #${packetCountRef.current} -> Temp: ${tempVal}°C, Gas: ${gasVal} AQI, Uptime: ${diagnostics.uptime}`,
+          message: `[TX] Frame #${packetCountRef.current} -> Temp: ${tempVal}°C, Gas: ${gasVal} Idx, Uptime: ${diagnostics.uptime}`,
         };
       } else if (cycle === 1) {
         newEntry = {
@@ -215,7 +215,7 @@ export const HardwareDiagnostics: React.FC<HardwareDiagnosticsProps> = ({
           id: `tx-${Date.now()}`,
           time: now,
           type: "tx",
-          message: `[DATA] Virtual Pins Sync -> V0 (${tempVal}°C), V1 (${gasVal} AQI), V2 (LED: ${deviceStatus?.led ? "1" : "0"}), V3 (Pump: ${deviceStatus?.aerator ? "1" : "0"})`,
+          message: `[DATA] Virtual Pins Sync -> V0 (${tempVal}°C), V1 (${gasVal} Idx), V2 (LED: ${deviceStatus?.led ? "1" : "0"}), V3 (Pump: ${deviceStatus?.aerator ? "1" : "0"})`,
         };
       }
 

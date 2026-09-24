@@ -58,11 +58,11 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, i
           let unit = "°C";
 
           if (entry.name === "temperature") {
-            labelText = "Temperature (DS18B20)";
+            labelText = "Culture Temperature (DS18B20)";
             unit = "°C";
           } else if (entry.name === "gasIndex") {
-            labelText = "Gas Index (MQ-135)";
-            unit = "AQI";
+            labelText = "Headspace Gas Index (MQ-135)";
+            unit = "Idx";
           }
 
           return (
@@ -184,7 +184,7 @@ export const SensorChart: React.FC<SensorChartProps> = ({
               domain={[0, (dataMax: number) => (dataMax <= 5 ? 35 : Math.ceil(dataMax + 2))]}
               unit="°C"
             />
-            {/* Right Y-Axis: Gas Index (AQI) */}
+            {/* Right Y-Axis: Headspace Gas Index (MQ-135 Idx) */}
             <YAxis
               yAxisId="right"
               orientation="right"
@@ -193,7 +193,7 @@ export const SensorChart: React.FC<SensorChartProps> = ({
               tickLine={false}
               axisLine={{ stroke: gridColor }}
               domain={[0, (dataMax: number) => (dataMax <= 20 ? 250 : Math.ceil(dataMax + 30))]}
-              unit=" AQI"
+              unit=" Idx"
             />
             <Tooltip content={<CustomTooltip isDark={isDark} />} />
 
@@ -232,7 +232,7 @@ export const SensorChart: React.FC<SensorChartProps> = ({
             style={{ backgroundColor: tempColor }}
           />
           <span className="text-aura-text-secondary">
-            Temperature (DS18B20):{" "}
+            Culture Temperature (DS18B20):{" "}
             <span className="text-aura-text-primary font-mono font-bold tabular-nums">
               {currentTemp > 0 ? `${currentTemp} °C` : "--"}
             </span>
@@ -245,9 +245,9 @@ export const SensorChart: React.FC<SensorChartProps> = ({
             style={{ backgroundColor: gasColor }}
           />
           <span className="text-aura-text-secondary">
-            Gas Index (MQ-135):{" "}
+            Headspace Gas Index (MQ-135):{" "}
             <span className="text-aura-text-primary font-mono font-bold tabular-nums">
-              {currentGas !== null && currentGas >= 0 ? `${currentGas} AQI` : "--"}
+              {currentGas !== null && currentGas >= 0 ? `${currentGas} Idx` : "--"}
             </span>
           </span>
         </div>
