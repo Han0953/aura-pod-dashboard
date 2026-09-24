@@ -71,11 +71,11 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     return { variant: "normal" as const, label: "Optimal (22–30°C)" };
   };
 
-  // Gas index status: Indikator relatif respons sensor gas, belum dikalibrasi
+  // Gas index status: Indikator relatif respons sensor gas
   const getGasStatusInfo = () => {
     if (isOffline) return { variant: "offline" as const, label: "Offline" };
     if (sensorData.gasIndex === null) return { variant: "unavailable" as const, label: "Tidak Terbaca" };
-    return { variant: "uncalibrated" as const, label: "Belum Dikalibrasi" };
+    return { variant: "uncalibrated" as const, label: "Respons Relatif" };
   };
 
   const tempStatus = getTempStatusInfo();
@@ -106,9 +106,9 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
       </div>
 
       {/* ROW 1: 3 Key Telemetry & Actuator Bento Cards */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 items-stretch">
         {/* Card 1: DS18B20 Temperature */}
-        <div className="dashboard-stagger-card">
+        <div className="dashboard-stagger-card h-full flex flex-col">
           <SensorCard
             title="Culture Temperature"
             hardwareSensor="DS18B20 1-Wire"
@@ -116,8 +116,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             unit="°C"
             status={tempStatus.variant}
             statusLabel={tempStatus.label}
-            targetRange="22.0 – 30.0 °C"
-            note="Panduan awal kultur alga"
             icon={<Thermometer className="w-5 h-5 text-aura-primary" />}
             colorTheme="mint"
             sparkline="temp"
@@ -126,16 +124,14 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
 
         {/* Card 2: MQ-135 Gas Index (Headspace relative response) */}
-        <div className="dashboard-stagger-card">
+        <div className="dashboard-stagger-card h-full flex flex-col">
           <SensorCard
-            title="Headspace Gas Index (MQ-135)"
+            title="Headspace Gas Index"
             hardwareSensor="MQ-135 Relative Response"
             value={sensorData.gasIndex}
             unit="Idx"
             status={gasStatus.variant}
             statusLabel={gasStatus.label}
-            targetRange="0 – 200 Idx (Ambang Sementara)"
-            note="Bukan CO₂ ppm / AQI standar"
             icon={<Wind className="w-5 h-5 text-aura-amber" />}
             colorTheme="amber"
             sparkline="gas"
@@ -144,7 +140,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
 
         {/* Card 3: Lighting Status */}
-        <div className="dashboard-stagger-card">
+        <div className="dashboard-stagger-card h-full flex flex-col">
           <SensorCard
             title="Grow Light Status"
             hardwareSensor="Full Spectrum 660/450nm"

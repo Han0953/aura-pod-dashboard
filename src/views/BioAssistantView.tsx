@@ -383,7 +383,7 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
                       : "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
                   )}
                 >
-                  {!isOnline ? "Offline" : "Belum Dikalibrasi"}
+                  {!isOnline ? "Offline" : "Respons Relatif"}
                 </span>
               </div>
             </div>

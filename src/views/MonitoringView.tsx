@@ -62,11 +62,11 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
     return { variant: "normal" as const, label: "Optimal (22–30°C)" };
   };
 
-  // Gas index status: Indikator relatif respons sensor gas, belum dikalibrasi
+  // Gas index status: Indikator relatif respons sensor gas
   const getGasStatusInfo = () => {
     if (isOffline) return { variant: "offline" as const, label: "Offline" };
     if (sensorData.gasIndex === null) return { variant: "unavailable" as const, label: "Tidak Terbaca" };
-    return { variant: "uncalibrated" as const, label: "Belum Dikalibrasi" };
+    return { variant: "uncalibrated" as const, label: "Respons Relatif" };
   };
 
   const tempStatus = getTempStatusInfo();
@@ -161,7 +161,7 @@ export const MonitoringView: React.FC<MonitoringViewProps> = ({ dashboard }) => 
                   </div>
                   <div>
                     <h3 className="font-heading text-sm font-bold text-aura-text-primary">
-                      Headspace Gas Index (MQ-135)
+                      Headspace Gas Index
                     </h3>
                     <span className="text-[10px] text-aura-text-secondary font-mono uppercase tracking-wider">
                       MQ-135 Relative Response

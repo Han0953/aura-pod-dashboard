@@ -60,7 +60,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
         };
       case "uncalibrated":
         return {
-          text: label || "Belum dikalibrasi",
+          text: label || "Respons Relatif",
           bg: "bg-blue-500/10 text-blue-400 border border-blue-500/25",
           dot: "bg-blue-400/80",
           pulse: false,

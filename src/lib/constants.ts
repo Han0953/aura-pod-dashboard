@@ -25,7 +25,7 @@ export const SENSOR_THRESHOLDS = {
     note: "Ambang pemantauan awal (panduan awal yang dapat disesuaikan dengan kondisi kultur)",
   },
   gasIndex: {
-    label: "Headspace Gas Index (MQ-135)",
+    label: "Headspace Gas Index",
     min: 0,
     max: 400,
     optimalMin: 0,
