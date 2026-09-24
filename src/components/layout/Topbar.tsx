@@ -263,7 +263,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   };
 
   return (
-    <header className="hidden md:flex h-18 px-8 bg-aura-surface/75 backdrop-blur-xl items-center justify-between sticky top-0 z-20">
+    <header className="hidden md:flex h-18 px-8 bg-aura-surface/90 backdrop-blur-md border-b border-aura-border/40 transform-gpu items-center justify-between sticky top-0 z-20">
       {/* Left: View Title & Subtitle */}
       <div id="topbar-title-block" className="flex flex-col py-3">
         <h1 className="font-heading text-lg font-bold text-aura-text-primary tracking-tight flex items-center gap-2">

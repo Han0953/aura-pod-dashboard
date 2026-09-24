@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import gsap from "gsap";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -11,6 +11,7 @@ import { BioAssistantView } from "@/views/BioAssistantView";
 import { SettingsView } from "@/views/SettingsView";
 import { useDashboardData } from "@/services/dashboardService";
 import { ViewId } from "@/types/navigation";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 import { MobileHeader } from "@/components/layout/MobileHeader";
 import { MobileDockBar } from "@/components/layout/MobileDockBar";
@@ -145,136 +146,146 @@ export const DashboardPage: React.FC = () => {
     handleViewChange("device");
   }, [handleViewChange]);
 
-  const mobileViews = [
-    {
-      id: "overview" as ViewId,
-      component: (
-        <OverviewView
-          dashboard={dashboard}
-          onNavigateToDevice={handleNavigateToDevice}
-          isEntrance={isEntrance}
-        />
-      ),
-    },
-    {
-      id: "monitoring" as ViewId,
-      component: <MonitoringView dashboard={dashboard} />,
-    },
-    {
-      id: "device" as ViewId,
-      component: <DeviceView dashboard={dashboard} />,
-    },
-    {
-      id: "analytics" as ViewId,
-      component: <AnalyticsView dashboard={dashboard} />,
-    },
-  ];
+  const isMobile = useIsMobile();
+
+  const mobileViews = useMemo(() => {
+    if (!isMobile) return [];
+    return [
+      {
+        id: "overview" as ViewId,
+        component: (
+          <OverviewView
+            dashboard={dashboard}
+            onNavigateToDevice={handleNavigateToDevice}
+            isEntrance={isEntrance}
+          />
+        ),
+      },
+      {
+        id: "monitoring" as ViewId,
+        component: <MonitoringView dashboard={dashboard} />,
+      },
+      {
+        id: "device" as ViewId,
+        component: <DeviceView dashboard={dashboard} />,
+      },
+      {
+        id: "analytics" as ViewId,
+        component: <AnalyticsView dashboard={dashboard} />,
+      },
+    ];
+  }, [isMobile, dashboard, handleNavigateToDevice, isEntrance]);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-aura-bg text-aura-text-primary">
-      {/* Collapsible Left Sidebar (Desktop Only) */}
-      <Sidebar
-        activeView={activeView}
-        onViewChange={handleViewChange}
-        isEspOnline={dashboard.deviceStatus.online}
-        onRefresh={dashboard.refreshData}
-        isRefreshing={dashboard.isRefreshing}
-        isEntrance={isEntrance}
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={handleToggleSidebar}
-        onLogout={handleLogout}
-      />
+      {/* ── DESKTOP MAIN CONTENT AREA (Hanya di-render di viewport Desktop >= 768px) ── */}
+      {!isMobile && (
+        <>
+          <Sidebar
+            activeView={activeView}
+            onViewChange={handleViewChange}
+            isEspOnline={dashboard.deviceStatus.online}
+            onRefresh={dashboard.refreshData}
+            isRefreshing={dashboard.isRefreshing}
+            isEntrance={isEntrance}
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={handleToggleSidebar}
+            onLogout={handleLogout}
+          />
 
-      {/* ── DESKTOP MAIN CONTENT AREA (Hidden on Mobile) ── */}
-      <div className="hidden md:flex flex-1 flex-col min-w-0 h-screen overflow-hidden">
-        {/* Topbar Header */}
-        <Topbar
-          activeView={activeView}
-          lastUpdatedText={dashboard.lastUpdatedText}
-          notifications={dashboard.notifications}
-          unreadNotificationCount={dashboard.unreadNotificationCount}
-          onMarkAllAsRead={dashboard.markAllNotificationsAsRead}
-          onClearAllNotifications={dashboard.clearAllNotifications}
-          onDeleteNotification={dashboard.deleteNotification}
-        />
+          <div className="flex flex-1 flex-col min-w-0 h-screen overflow-hidden">
+            {/* Topbar Header */}
+            <Topbar
+              activeView={activeView}
+              lastUpdatedText={dashboard.lastUpdatedText}
+              notifications={dashboard.notifications}
+              unreadNotificationCount={dashboard.unreadNotificationCount}
+              onMarkAllAsRead={dashboard.markAllNotificationsAsRead}
+              onClearAllNotifications={dashboard.clearAllNotifications}
+              onDeleteNotification={dashboard.deleteNotification}
+            />
 
-        {/* Scrollable View Canvas */}
-        <main
-          ref={mainContentRef}
-          className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 bg-transparent"
-        >
-          <div className="max-w-7xl mx-auto">
-            {activeView === "overview" && (
-              <OverviewView
-                dashboard={dashboard}
-                onNavigateToDevice={handleNavigateToDevice}
-                isEntrance={isEntrance}
+            {/* Scrollable View Canvas dengan Hardware Acceleration */}
+            <main
+              ref={mainContentRef}
+              className="flex-1 overflow-y-auto gpu-scroll px-6 sm:px-8 py-6 bg-transparent"
+            >
+              <div className="max-w-7xl mx-auto">
+                {activeView === "overview" && (
+                  <OverviewView
+                    dashboard={dashboard}
+                    onNavigateToDevice={handleNavigateToDevice}
+                    isEntrance={isEntrance}
+                  />
+                )}
+
+                {activeView === "monitoring" && (
+                  <MonitoringView dashboard={dashboard} />
+                )}
+
+                {activeView === "device" && (
+                  <DeviceView dashboard={dashboard} />
+                )}
+
+                {activeView === "analytics" && (
+                  <AnalyticsView dashboard={dashboard} />
+                )}
+
+                {activeView === "assistant" && (
+                  <BioAssistantView dashboard={dashboard} />
+                )}
+
+                {activeView === "settings" && (
+                  <SettingsView dashboard={dashboard} onViewChange={handleViewChange} />
+                )}
+              </div>
+            </main>
+          </div>
+        </>
+      )}
+
+      {/* ── MOBILE APP LAYOUT WITH DOCK BAR & SWIPE CONTAINER (Hanya di-render di viewport Mobile < 768px) ── */}
+      {isMobile && (
+        <div className="flex flex-1 flex-col min-w-0 h-screen overflow-hidden relative">
+          <MobileHeader
+            activeView={activeView}
+            lastUpdatedText={dashboard.lastUpdatedText}
+            isEspOnline={dashboard.deviceStatus.online}
+            onRefresh={dashboard.refreshData}
+            isRefreshing={dashboard.isRefreshing}
+            notifications={dashboard.notifications}
+            unreadNotificationCount={dashboard.unreadNotificationCount}
+            onMarkAllAsRead={dashboard.markAllNotificationsAsRead}
+            onClearAllNotifications={dashboard.clearAllNotifications}
+            onDeleteNotification={dashboard.deleteNotification}
+            onNavigateToSettings={() => handleViewChange("settings")}
+            onLogout={handleLogout}
+          />
+
+          <main ref={mobileMainRef} className="flex-1 overflow-hidden pt-16 relative">
+            {activeView === "assistant" ? (
+              <div className="w-full h-full overflow-y-auto px-3 sm:px-4 pt-2 pb-24 touch-pan-y scrollbar-none">
+                <BioAssistantView dashboard={dashboard} />
+              </div>
+            ) : activeView === "settings" ? (
+              <div className="w-full h-full overflow-y-auto px-3 sm:px-4 pt-2 pb-24 touch-pan-y scrollbar-none">
+                <SettingsView dashboard={dashboard} onViewChange={handleViewChange} />
+              </div>
+            ) : (
+              <MobileSwipeContainer
+                activeView={activeView}
+                onViewChange={handleViewChange}
+                views={mobileViews}
               />
             )}
+          </main>
 
-            {activeView === "monitoring" && (
-              <MonitoringView dashboard={dashboard} />
-            )}
-
-            {activeView === "device" && (
-              <DeviceView dashboard={dashboard} />
-            )}
-
-            {activeView === "analytics" && (
-              <AnalyticsView dashboard={dashboard} />
-            )}
-
-            {activeView === "assistant" && (
-              <BioAssistantView dashboard={dashboard} />
-            )}
-
-            {activeView === "settings" && (
-              <SettingsView dashboard={dashboard} onViewChange={handleViewChange} />
-            )}
-          </div>
-        </main>
-      </div>
-
-      {/* ── MOBILE APP LAYOUT WITH DOCK BAR & SWIPE/PEEK CONTAINER (Hidden on Desktop) ── */}
-      <div className="flex md:hidden flex-1 flex-col min-w-0 h-screen overflow-hidden relative">
-        <MobileHeader
-          activeView={activeView}
-          lastUpdatedText={dashboard.lastUpdatedText}
-          isEspOnline={dashboard.deviceStatus.online}
-          onRefresh={dashboard.refreshData}
-          isRefreshing={dashboard.isRefreshing}
-          notifications={dashboard.notifications}
-          unreadNotificationCount={dashboard.unreadNotificationCount}
-          onMarkAllAsRead={dashboard.markAllNotificationsAsRead}
-          onClearAllNotifications={dashboard.clearAllNotifications}
-          onDeleteNotification={dashboard.deleteNotification}
-          onNavigateToSettings={() => handleViewChange("settings")}
-          onLogout={handleLogout}
-        />
-
-        <main ref={mobileMainRef} className="flex-1 overflow-hidden pt-16 relative">
-          {activeView === "assistant" ? (
-            <div className="w-full h-full overflow-y-auto px-3 sm:px-4 pt-2 pb-24 touch-pan-y scrollbar-none">
-              <BioAssistantView dashboard={dashboard} />
-            </div>
-          ) : activeView === "settings" ? (
-            <div className="w-full h-full overflow-y-auto px-3 sm:px-4 pt-2 pb-24 touch-pan-y scrollbar-none">
-              <SettingsView dashboard={dashboard} onViewChange={handleViewChange} />
-            </div>
-          ) : (
-            <MobileSwipeContainer
-              activeView={activeView}
-              onViewChange={handleViewChange}
-              views={mobileViews}
-            />
-          )}
-        </main>
-
-        <MobileDockBar
-          activeView={activeView}
-          onViewChange={handleViewChange}
-        />
-      </div>
+          <MobileDockBar
+            activeView={activeView}
+            onViewChange={handleViewChange}
+          />
+        </div>
+      )}
     </div>
   );
 };
