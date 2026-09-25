@@ -32,7 +32,7 @@ const QUICK_PROMPTS = [
 ];
 
 // Helper untuk merender teks dengan mengubah markdown **kata** menjadi teks tebal rapi tanpa tanda bintang *
-const FormattedMessageContent: React.FC<{ content: string; isUser: boolean }> = ({ content, isUser }) => {
+const FormattedMessageContent: React.FC<{ content: string; isUser: boolean }> = React.memo(({ content, isUser }) => {
   const lines = content.split("\n");
 
   const parseLine = (line: string, lineKey: string | number) => {
@@ -97,7 +97,69 @@ const FormattedMessageContent: React.FC<{ content: string; isUser: boolean }> = 
       })}
     </div>
   );
-};
+});
+FormattedMessageContent.displayName = "FormattedMessageContent";
+
+// Memoized individual message item to guarantee ultra-fast 60-120fps scrolling
+const ChatMessageItem: React.FC<{ msg: ChatMessage }> = React.memo(({ msg }) => {
+  const isUser = msg.role === "user";
+  return (
+    <div
+      className={cn(
+        "flex gap-3 max-w-3xl",
+        isUser ? "ml-auto flex-row-reverse" : "mr-auto"
+      )}
+      style={{ contentVisibility: "auto", containIntrinsicSize: "0 60px" }}
+    >
+      {/* Avatar */}
+      <div
+        className={cn(
+          "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border text-xs shadow-sm overflow-hidden",
+          isUser
+            ? "bg-aura-primary text-black font-bold border-aura-primary/50"
+            : "bg-aura-surface-subtle border-aura-primary/30"
+        )}
+      >
+        {isUser ? (
+          "U"
+        ) : (
+          <img
+            src="/aira.webp"
+            alt="AIRA"
+            className="w-full h-full object-cover object-top"
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        )}
+      </div>
+
+      {/* Message Bubble without heavy backdrop-blur filters for silky scrolling */}
+      <div className="flex flex-col gap-1 max-w-[85%]">
+        <div
+          className={cn(
+            "p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm",
+            isUser
+              ? "bg-aura-primary text-black font-medium rounded-tr-sm"
+              : "bg-aura-surface-subtle border border-aura-border text-aura-text-primary rounded-tl-sm"
+          )}
+        >
+          <FormattedMessageContent content={msg.content} isUser={isUser} />
+        </div>
+        <span
+          className={cn(
+            "text-[10px] text-aura-text-secondary font-mono px-1",
+            isUser ? "text-right" : "text-left"
+          )}
+        >
+          {msg.timestamp}
+        </span>
+      </div>
+    </div>
+  );
+});
+ChatMessageItem.displayName = "ChatMessageItem";
 
 export const BioAssistantView: React.FC<BioAssistantViewProps> = ({ dashboard }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -328,7 +390,7 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
       </div>
 
       {/* ── 2. Live Hardware Telemetry Context Bar ── */}
-      <div className="assistant-stagger-item p-4 rounded-2xl bg-aura-surface border border-aura-border shadow-card backdrop-blur-sm">
+      <div className="assistant-stagger-item p-4 rounded-2xl bg-aura-surface border border-aura-border shadow-card">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs font-semibold text-aura-text-primary">
             <ShieldCheck className="w-4 h-4 text-aura-primary" />
@@ -425,65 +487,15 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
 
       {/* ── 3. Chat Console Box ── */}
       <div className="assistant-stagger-item rounded-2xl bg-aura-surface border border-aura-border shadow-card overflow-hidden flex flex-col h-[500px] sm:h-[560px] md:h-[600px]">
-        {/* Messages Container */}
-        <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-          {messages.map((msg) => {
-            const isUser = msg.role === "user";
-            return (
-              <div
-                key={msg.id}
-                className={cn(
-                  "flex gap-3 max-w-3xl",
-                  isUser ? "ml-auto flex-row-reverse" : "mr-auto"
-                )}
-              >
-                {/* Avatar */}
-                <div
-                  className={cn(
-                    "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border text-xs shadow-sm overflow-hidden",
-                    isUser
-                      ? "bg-aura-primary text-black font-bold border-aura-primary/50"
-                      : "bg-aura-surface-subtle border-aura-primary/30"
-                  )}
-                >
-                  {isUser ? (
-                    "U"
-                  ) : (
-                    <img
-                      src="/aira.webp"
-                      alt="AIRA"
-                      className="w-full h-full object-cover object-top"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  )}
-                </div>
-
-                {/* Message Bubble */}
-                <div className="flex flex-col gap-1 max-w-[85%]">
-                  <div
-                    className={cn(
-                      "p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-sm",
-                      isUser
-                        ? "bg-aura-primary text-black font-medium rounded-tr-sm"
-                        : "bg-aura-bg/80 border border-aura-border/80 text-aura-text-primary rounded-tl-sm backdrop-blur-sm"
-                    )}
-                  >
-                    <FormattedMessageContent content={msg.content} isUser={isUser} />
-                  </div>
-                  <span
-                    className={cn(
-                      "text-[10px] text-aura-text-secondary font-mono px-1",
-                      isUser ? "text-right" : "text-left"
-                    )}
-                  >
-                    {msg.timestamp}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+        {/* Messages Container with hardware-accelerated scrolling and overscroll-contain */}
+        <div
+          ref={chatScrollRef}
+          className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 gpu-scroll overscroll-contain"
+          style={{ willChange: "scroll-position" }}
+        >
+          {messages.map((msg) => (
+            <ChatMessageItem key={msg.id} msg={msg} />
+          ))}
 
           {/* Thinking Indicator */}
           {isThinking && (
@@ -498,7 +510,7 @@ Coba kamu periksa atau nyalakan node ESP32 kamu dan sambungkan ke Wi-Fi ya, biar
                   }}
                 />
               </div>
-              <div className="p-3.5 rounded-2xl rounded-tl-sm bg-aura-bg/80 border border-aura-border/80 text-xs text-aura-text-secondary flex items-center gap-2">
+              <div className="p-3.5 rounded-2xl rounded-tl-sm bg-aura-surface-subtle border border-aura-border text-xs text-aura-text-secondary flex items-center gap-2">
                 <div className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-aura-primary animate-bounce [animation-delay:-0.3s]" />
                   <span className="w-2 h-2 rounded-full bg-aura-primary animate-bounce [animation-delay:-0.15s]" />
