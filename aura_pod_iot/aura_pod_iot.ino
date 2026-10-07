@@ -14,9 +14,9 @@
  */
 
 // 1. DEFINISI BLYNK (Wajib di paling atas sebelum include Blynk)
-#define BLYNK_TEMPLATE_ID "TMPL6VbNOoQBN"
-#define BLYNK_TEMPLATE_NAME "AURA Pod"
-#define BLYNK_AUTH_TOKEN "a8VJ8BKhbsZoz97GQivZaTY90qm95YW3"
+#define BLYNK_TEMPLATE_ID "TMPL6VbNOoQBN" //ganti template id
+#define BLYNK_TEMPLATE_NAME "AURA Pod" //ganti template name
+#define BLYNK_AUTH_TOKEN "a8VJ8BKhbsZoz97GQivZaTY90qm95YW3" //ganti token
 
 #include <WiFi.h>
 #include <WiFiClient.h>
